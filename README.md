@@ -48,6 +48,9 @@ Convenience Endpoints:
 
 - [`POST /threads/{thread_id}/runs/wait`](https://langchain-ai.github.io/agent-protocol/api.html#tag/runs/POST/threads/%7Bthread_id%7D/runs/wait) - Create a run, and wait for its final output.
 - [`POST /threads/{thread_id}/runs/stream`](https://langchain-ai.github.io/agent-protocol/api.html#tag/runs/POST/threads/%7Bthread_id%7D/runs/stream) - Create a run, and stream output as produced.
+- [`POST /threads/runs`](https://langchain-ai.github.io/agent-protocol/api.html#tag/runs/POST/threads/runs) - Create a ephemeral thread and run in one request. The thread will be deleted after the run concludes.
+- [`POST /threads/runs/wait`](https://langchain-ai.github.io/agent-protocol/api.html#tag/runs/POST/threads/runs/wait) - Create a ephemeral thread and run, and wait for its final output.
+- [`POST /threads/runs/stream`](https://langchain-ai.github.io/agent-protocol/api.html#tag/runs/POST/threads/runs/stream) - Create a ephemeral thread and run, and stream output as produced.
 
 ## Threads: multi-turn interactions
 
