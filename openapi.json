@@ -1563,10 +1563,10 @@
               "values"
             ]
           },
-          "stream_subgraphs": {
+          "stream_subagents": {
             "type": "boolean",
-            "title": "Stream Subgraphs",
-            "description": "Whether to stream output from subgraphs.",
+            "title": "Stream Subagents",
+            "description": "Whether to stream output from subagents.",
             "default": false
           },
           "on_disconnect": {
