@@ -99,7 +99,7 @@ def patch_thread_threads__thread_id__patch(
 @router.post(
     "/threads/{thread_id}/copy",
     response_model=Thread,
-    responses={"409": {"model": ErrorResponse}, "422": {"model": ErrorResponse}},
+    responses={"404": {"model": ErrorResponse}, "422": {"model": ErrorResponse}},
     tags=["Threads"],
 )
 def copy_thread_post_threads__thread_id__copy_post(
