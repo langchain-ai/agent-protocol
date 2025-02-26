@@ -6,7 +6,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from ..models import (
-    Action1,
+    Action,
     Any,
     ErrorResponse,
     Optional,
@@ -132,7 +132,7 @@ def cancel_run_http_threads__thread_id__runs__run_id__cancel_post(
     thread_id: UUID,
     run_id: UUID = ...,
     wait: Optional[bool] = False,
-    action: Optional[Action1] = "interrupt",
+    action: Optional[Action] = "interrupt",
 ) -> Union[Any, ErrorResponse]:
     """
     Cancel Run
