@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Query
 
 from ..models import (
     ErrorResponse,
@@ -55,7 +57,7 @@ def delete_item(body: StoreDeleteRequest) -> Optional[ErrorResponse]:
     tags=["Store"],
 )
 def get_item(
-    key: str, namespace: Optional[Namespace] = None
+    key: str, namespace: Annotated[list[str] | None, Query()] = None
 ) -> Union[Item, ErrorResponse]:
     """
     Retrieve a single item.
