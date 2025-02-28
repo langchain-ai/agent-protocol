@@ -2111,14 +2111,7 @@
             "description": "State values to filter on."
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "idle",
-              "busy",
-              "interrupted",
-              "error"
-            ],
-            "title": "Status",
+            "$ref": "#/components/schemas/ThreadStatus",
             "description": "Thread status to filter on."
           },
           "limit": {
@@ -2167,15 +2160,7 @@
             "description": "The thread metadata."
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "idle",
-              "busy",
-              "interrupted",
-              "error"
-            ],
-            "title": "Status",
-            "description": "The status of the thread."
+            "$ref": "#/components/schemas/ThreadStatus"
           },
           "values": {
             "type": "object",
@@ -2279,8 +2264,23 @@
         "title": "ThreadCreate",
         "description": "Payload for creating a thread."
       },
+      "ThreadStatus": {
+        "type": "string",
+        "enum": [
+          "idle",
+          "busy",
+          "interrupted",
+          "error"
+        ],
+        "title": "Status",
+        "description": "The status of the thread."
+      },
       "ThreadPatch": {
         "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ThreadStatus",
+            "description": "The status of the thread."
+          },
           "checkpoint": {
             "$ref": "#/components/schemas/ThreadCheckpoint",
             "title": "Checkpoint",
