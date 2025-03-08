@@ -1171,6 +1171,94 @@
         }
       }
     },
+    "/threads/{thread_id}/runs/{run_id}/resume": {
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Resume Run",
+        "description": "Resume an existing run on a thread, return the run ID immediately. Don't wait for the final run output.",
+        "operationId": "resume_run_http_threads__thread_id__runs__run_id__resume_post",
+        "parameters": [
+          {
+            "description": "The ID of the thread.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id",
+              "description": "The ID of the thread."
+            },
+            "name": "thread_id",
+            "in": "path"
+          },
+          {
+            "description": "The ID of the run.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id",
+              "description": "The ID of the run."
+            },
+            "name": "run_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunResumeStateful"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/threads/{thread_id}/runs/{run_id}/cancel": {
       "post": {
         "tags": [
@@ -1962,6 +2050,43 @@
         "required": [],
         "title": "RunCreateStateful",
         "description": "Payload for creating a run."
+      },
+      "RunResumeStateful": {
+        "properties": {
+          "input": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input",
+            "description": "The input to the graph to resume it from an interrupted state."
+          },
+          "after_seconds": {
+            "type": "integer",
+            "title": "After Seconds",
+            "description": "The number of seconds to wait before resuming the run. Use to resume runs in the future."
+          }
+        },
+        "type": "object",
+        "required": [],
+        "title": "RunResumeStateful",
+        "description": "Payload for resuming a run."
       },
       "RunWaitResponse": {
         "type": "object",

@@ -176,6 +176,19 @@ class RunCreateStateful(BaseModel):
     )
 
 
+class RunResumeStateful(BaseModel):
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None,
+        description="The input to the graph to resume it from an interrupted state.",
+        title="Input",
+    )
+    after_seconds: Optional[int] = Field(
+        None,
+        description="The number of seconds to wait before resuming the run. Use to resume runs in the future.",
+        title="After Seconds",
+    )
+
+
 class OnCompletion(Enum):
     delete = "delete"
     keep = "keep"

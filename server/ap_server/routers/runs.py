@@ -12,6 +12,7 @@ from ..models import (
     Optional,
     Run,
     RunCreateStateful,
+    RunResumeStateful,
     RunWaitResponse,
     ThreadsThreadIdRunsGetResponse,
     UUID,
@@ -139,6 +140,25 @@ def cancel_run_http_threads__thread_id__runs__run_id__cancel_post(
 ) -> Optional[ErrorResponse]:
     """
     Cancel Run
+    """
+    pass
+
+
+@router.post(
+    "/threads/{thread_id}/runs/{run_id}/resume",
+    response_model=Run,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def resume_run_http_threads__thread_id__runs__run_id__resume_post(
+    thread_id: UUID, run_id: UUID = ..., body: RunResumeStateful = ...
+) -> Union[Run, ErrorResponse]:
+    """
+    Resume Run
     """
     pass
 
