@@ -53,7 +53,7 @@ class AgentSchemas(BaseModel):
     )
 
 
-class Status(Enum):
+class RunStatus(Enum):
     pending = "pending"
     error = "error"
     success = "success"
@@ -80,10 +80,8 @@ class Run(BaseModel):
     updated_at: AwareDatetime = Field(
         ..., description="The last time the run was updated.", title="Updated At"
     )
-    status: Status = Field(
-        ...,
-        description="The status of the run. One of 'pending', 'error', 'success', 'timeout', 'interrupted'.",
-        title="Status",
+    status: RunStatus = Field(
+        ..., description="The status of the run.", title="Run Status"
     )
     metadata: Dict[str, Any] = Field(
         ..., description="The run metadata.", title="Metadata"
@@ -224,31 +222,6 @@ class RunCreateStateless(BaseModel):
     )
 
 
-class Status1(Enum):
-    idle = "idle"
-    busy = "busy"
-    interrupted = "interrupted"
-    error = "error"
-
-
-class ThreadSearchRequest(BaseModel):
-    metadata: Optional[Dict[str, Any]] = Field(
-        None, description="Thread metadata to filter on.", title="Metadata"
-    )
-    values: Optional[Dict[str, Any]] = Field(
-        None, description="State values to filter on.", title="Values"
-    )
-    status: Optional[Status1] = Field(
-        None, description="Thread status to filter on.", title="Status"
-    )
-    limit: Optional[conint(ge=1, le=1000)] = Field(
-        10, description="Maximum number to return.", title="Limit"
-    )
-    offset: Optional[conint(ge=0)] = Field(
-        0, description="Offset to start from.", title="Offset"
-    )
-
-
 class ThreadCheckpoint(BaseModel):
     model_config = ConfigDict(
         extra="allow",
@@ -277,6 +250,13 @@ class ThreadCreate(BaseModel):
         description="How to handle duplicate creation. Must be either 'raise' (raise error if duplicate), or 'do_nothing' (return existing thread).",
         title="If Exists",
     )
+
+
+class ThreadStatus(Enum):
+    idle = "idle"
+    busy = "busy"
+    interrupted = "interrupted"
+    error = "error"
 
 
 class StorePutRequest(BaseModel):
@@ -459,6 +439,24 @@ class RunWaitResponse(BaseModel):
     )
 
 
+class ThreadSearchRequest(BaseModel):
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Thread metadata to filter on.", title="Metadata"
+    )
+    values: Optional[Dict[str, Any]] = Field(
+        None, description="State values to filter on.", title="Values"
+    )
+    status: Optional[ThreadStatus] = Field(
+        None, description="Thread status to filter on.", title="Thread Status"
+    )
+    limit: Optional[conint(ge=1, le=1000)] = Field(
+        10, description="Maximum number to return.", title="Limit"
+    )
+    offset: Optional[conint(ge=0)] = Field(
+        0, description="Offset to start from.", title="Offset"
+    )
+
+
 class Thread(BaseModel):
     thread_id: UUID = Field(..., description="The ID of the thread.", title="Thread Id")
     created_at: AwareDatetime = Field(
@@ -470,8 +468,8 @@ class Thread(BaseModel):
     metadata: Dict[str, Any] = Field(
         ..., description="The thread metadata.", title="Metadata"
     )
-    status: Status1 = Field(
-        ..., description="The status of the thread.", title="Status"
+    status: ThreadStatus = Field(
+        ..., description="The status of the thread.", title="Thread Status"
     )
     values: Optional[Dict[str, Any]] = Field(
         None, description="The current state of the thread.", title="Values"

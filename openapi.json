@@ -1739,6 +1739,18 @@
         "title": "AgentSchemas",
         "description": "Defines the structure and properties of an agent."
       },
+      "RunStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "error",
+          "success",
+          "timeout",
+          "interrupted"
+        ],
+        "title": "Status",
+        "description": "The status of the run. One of 'pending', 'error', 'success', 'timeout', 'interrupted'."
+      },
       "Run": {
         "properties": {
           "run_id": {
@@ -1771,16 +1783,9 @@
             "description": "The last time the run was updated."
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "pending",
-              "error",
-              "success",
-              "timeout",
-              "interrupted"
-            ],
-            "title": "Status",
-            "description": "The status of the run. One of 'pending', 'error', 'success', 'timeout', 'interrupted'."
+            "$ref": "#/components/schemas/RunStatus",
+            "title": "Run Status",
+            "description": "The status of the run."
           },
           "metadata": {
             "type": "object",
@@ -2140,14 +2145,8 @@
             "description": "State values to filter on."
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "idle",
-              "busy",
-              "interrupted",
-              "error"
-            ],
-            "title": "Status",
+            "$ref": "#/components/schemas/ThreadStatus",
+            "title": "Thread Status",
             "description": "Thread status to filter on."
           },
           "limit": {
@@ -2196,14 +2195,8 @@
             "description": "The thread metadata."
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "idle",
-              "busy",
-              "interrupted",
-              "error"
-            ],
-            "title": "Status",
+            "$ref": "#/components/schemas/ThreadStatus",
+            "title": "Thread Status",
             "description": "The status of the thread."
           },
           "values": {
@@ -2307,6 +2300,17 @@
         "type": "object",
         "title": "ThreadCreate",
         "description": "Payload for creating a thread."
+      },
+      "ThreadStatus": {
+        "type": "string",
+        "enum": [
+          "idle",
+          "busy",
+          "interrupted",
+          "error"
+        ],
+        "title": "Status",
+        "description": "The status of the thread. One of 'idle', 'busy', 'interrupted', 'error'."
       },
       "ThreadPatch": {
         "properties": {
