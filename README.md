@@ -222,7 +222,7 @@ HTTP/1.1 200
 
 ### Journey 3: Using the Store (Add, Retrieve, and Delete an Item)
 
-This journey demonstrates how to use the Store API to add, retrieve, and delete an item. This is useful for storing long-term memory, such as user profiles, preferences, or other structured data, which can be accessed btoh inside and outside the agent.
+This journey demonstrates how to use the Store API to add, retrieve, and delete an item. This is useful for storing long-term memory, such as user profiles, preferences, or other structured data, which can be accessed both inside and outside the agent.
 
 ```hurl
 # 1. Put (store or update) an item in the store
