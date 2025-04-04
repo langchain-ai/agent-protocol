@@ -143,24 +143,6 @@ class IfNotExists(Enum):
     reject = "reject"
 
 
-class RunResumeStateful(BaseModel):
-    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
-        None,
-        description="The input to the graph to resume it from an interrupted state.",
-        title="Input",
-    )
-    after_seconds: Optional[int] = Field(
-        None,
-        description="The number of seconds to wait before resuming the run. Use to resume runs in the future.",
-        title="After Seconds",
-    )
-    messages: Optional[List[Message]] = Field(
-        None,
-        description="The messages to pass as input to the agent while resuming it.",
-        title="Messages",
-    )
-
-
 class OnCompletion(Enum):
     delete = "delete"
     keep = "keep"
@@ -422,6 +404,24 @@ class RunCreateStateful(BaseModel):
     after_seconds: Optional[int] = Field(
         None,
         description="The number of seconds to wait before starting the run. Use to schedule future runs.",
+        title="After Seconds",
+    )
+
+
+class RunResumeStateful(BaseModel):
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None,
+        description="The input to the graph to resume it from an interrupted state.",
+        title="Input",
+    )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass an input to the agent.",
+        title="Messages",
+    )
+    after_seconds: Optional[int] = Field(
+        None,
+        description="The number of seconds to wait before resuming the run. Use to resume runs in the future.",
         title="After Seconds",
     )
 

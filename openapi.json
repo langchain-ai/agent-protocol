@@ -2104,6 +2104,14 @@
             "title": "Input",
             "description": "The input to the graph to resume it from an interrupted state."
           },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "title": "Messages",
+            "description": "The messages to pass an input to the agent."
+          },
           "after_seconds": {
             "type": "integer",
             "title": "After Seconds",
