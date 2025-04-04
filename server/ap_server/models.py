@@ -18,6 +18,18 @@ from pydantic import (
 )
 
 
+class Capabilities(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    ap_io_messages: Optional[bool] = Field(
+        None,
+        alias="ap.io.messages",
+        description="Whether the agent supports Messages as input/output/state. If true, the agent uses the `messages` key in threads/runs endpoints.",
+        title="Messages",
+    )
+
+
 class Agent(BaseModel):
     agent_id: str = Field(..., description="The ID of the agent.", title="Agent Id")
     name: str = Field(..., description="The name of the agent", title="Agent Name")
@@ -26,6 +38,11 @@ class Agent(BaseModel):
     )
     metadata: Optional[Dict[str, Any]] = Field(
         None, description="The agent metadata.", title="Metadata"
+    )
+    capabilities: Capabilities = Field(
+        ...,
+        description="Describes which protocol features the agent supports. In addition to the standard capabilities (prefixed with ap.), implementations can declare custom capabilities, named in reverse domain notation (eg. com.example.some.capability).",
+        title="Agent Capabilities",
     )
 
 
@@ -53,7 +70,7 @@ class AgentSchemas(BaseModel):
     )
 
 
-class Status(Enum):
+class RunStatus(Enum):
     pending = "pending"
     error = "error"
     success = "success"
@@ -80,10 +97,8 @@ class Run(BaseModel):
     updated_at: AwareDatetime = Field(
         ..., description="The last time the run was updated.", title="Updated At"
     )
-    status: Status = Field(
-        ...,
-        description="The status of the run. One of 'pending', 'error', 'success', 'timeout', 'interrupted'.",
-        title="Status",
+    status: RunStatus = Field(
+        ..., description="The status of the run.", title="Run Status"
     )
     metadata: Dict[str, Any] = Field(
         ..., description="The run metadata.", title="Metadata"
@@ -128,54 +143,6 @@ class IfNotExists(Enum):
     reject = "reject"
 
 
-class RunCreateStateful(BaseModel):
-    agent_id: Optional[str] = Field(
-        None,
-        description="The agent ID to run. If not provided will use the default agent for this service.",
-        title="Agent Id",
-    )
-    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
-        None, description="The input to the graph.", title="Input"
-    )
-    metadata: Optional[Dict[str, Any]] = Field(
-        None, description="Metadata to assign to the run.", title="Metadata"
-    )
-    config: Optional[Config] = Field(
-        None, description="The configuration for the agent.", title="Config"
-    )
-    webhook: Optional[AnyUrl] = Field(
-        None, description="Webhook to call after run finishes.", title="Webhook"
-    )
-    stream_mode: Optional[Union[List[StreamModeEnum], StreamMode]] = Field(
-        ["values"], description="The stream mode(s) to use.", title="Stream Mode"
-    )
-    stream_subgraphs: Optional[bool] = Field(
-        False,
-        description="Whether to stream output from subgraphs.",
-        title="Stream Subgraphs",
-    )
-    on_disconnect: Optional[OnDisconnect] = Field(
-        "cancel",
-        description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
-        title="On Disconnect",
-    )
-    multitask_strategy: Optional[MultitaskStrategy] = Field(
-        "reject",
-        description="Multitask strategy to use. Must be one of 'reject', 'interrupt', 'rollback', or 'enqueue'.",
-        title="Multitask Strategy",
-    )
-    if_not_exists: Optional[IfNotExists] = Field(
-        "reject",
-        description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
-        title="If Not Exists",
-    )
-    after_seconds: Optional[int] = Field(
-        None,
-        description="The number of seconds to wait before starting the run. Use to schedule future runs.",
-        title="After Seconds",
-    )
-
-
 class RunResumeStateful(BaseModel):
     input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
         None,
@@ -187,79 +154,16 @@ class RunResumeStateful(BaseModel):
         description="The number of seconds to wait before resuming the run. Use to resume runs in the future.",
         title="After Seconds",
     )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass as input to the agent while resuming it.",
+        title="Messages",
+    )
 
 
 class OnCompletion(Enum):
     delete = "delete"
     keep = "keep"
-
-
-class RunCreateStateless(BaseModel):
-    agent_id: Optional[str] = Field(
-        None,
-        description="The agent ID to run. If not provided will use the default agent for this service.",
-        title="Agent Id",
-    )
-    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
-        None, description="The input to the graph.", title="Input"
-    )
-    metadata: Optional[Dict[str, Any]] = Field(
-        None, description="Metadata to assign to the run.", title="Metadata"
-    )
-    config: Optional[Config] = Field(
-        None, description="The configuration for the agent.", title="Config"
-    )
-    webhook: Optional[AnyUrl] = Field(
-        None, description="Webhook to call after run finishes.", title="Webhook"
-    )
-    stream_mode: Optional[Union[List[StreamModeEnum], StreamMode]] = Field(
-        ["values"], description="The stream mode(s) to use.", title="Stream Mode"
-    )
-    on_completion: Optional[OnCompletion] = Field(
-        "delete",
-        description="Whether to delete or keep the thread created for a stateless run. Must be one of 'delete' or 'keep'.",
-        title="On Completion",
-    )
-    on_disconnect: Optional[OnDisconnect] = Field(
-        "cancel",
-        description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
-        title="On Disconnect",
-    )
-    multitask_strategy: Optional[MultitaskStrategy] = Field(
-        "reject",
-        description="Multitask strategy to use. Must be one of 'reject', 'interrupt', 'rollback', or 'enqueue'.",
-        title="Multitask Strategy",
-    )
-    after_seconds: Optional[int] = Field(
-        None,
-        description="The number of seconds to wait before starting the run. Use to schedule future runs.",
-        title="After Seconds",
-    )
-
-
-class Status1(Enum):
-    idle = "idle"
-    busy = "busy"
-    interrupted = "interrupted"
-    error = "error"
-
-
-class ThreadSearchRequest(BaseModel):
-    metadata: Optional[Dict[str, Any]] = Field(
-        None, description="Thread metadata to filter on.", title="Metadata"
-    )
-    values: Optional[Dict[str, Any]] = Field(
-        None, description="State values to filter on.", title="Values"
-    )
-    status: Optional[Status1] = Field(
-        None, description="Thread status to filter on.", title="Status"
-    )
-    limit: Optional[conint(ge=1, le=1000)] = Field(
-        10, description="Maximum number to return.", title="Limit"
-    )
-    offset: Optional[conint(ge=0)] = Field(
-        0, description="Offset to start from.", title="Offset"
-    )
 
 
 class ThreadCheckpoint(BaseModel):
@@ -290,6 +194,13 @@ class ThreadCreate(BaseModel):
         description="How to handle duplicate creation. Must be either 'raise' (raise error if duplicate), or 'do_nothing' (return existing thread).",
         title="If Exists",
     )
+
+
+class ThreadStatus(Enum):
+    idle = "idle"
+    busy = "busy"
+    interrupted = "interrupted"
+    error = "error"
 
 
 class StorePutRequest(BaseModel):
@@ -462,6 +373,59 @@ class Namespace(RootModel[List[str]]):
     root: List[str]
 
 
+class RunCreateStateful(BaseModel):
+    agent_id: Optional[str] = Field(
+        None,
+        description="The agent ID to run. If not provided will use the default agent for this service.",
+        title="Agent Id",
+    )
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None, description="The input to the agent.", title="Input"
+    )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass as input to the agent.",
+        title="Messages",
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Metadata to assign to the run.", title="Metadata"
+    )
+    config: Optional[Config] = Field(
+        None, description="The configuration for the agent.", title="Config"
+    )
+    webhook: Optional[AnyUrl] = Field(
+        None, description="Webhook to call after run finishes.", title="Webhook"
+    )
+    stream_mode: Optional[Union[List[StreamModeEnum], StreamMode]] = Field(
+        ["values"], description="The stream mode(s) to use.", title="Stream Mode"
+    )
+    stream_subgraphs: Optional[bool] = Field(
+        False,
+        description="Whether to stream output from subgraphs.",
+        title="Stream Subgraphs",
+    )
+    on_disconnect: Optional[OnDisconnect] = Field(
+        "cancel",
+        description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
+        title="On Disconnect",
+    )
+    multitask_strategy: Optional[MultitaskStrategy] = Field(
+        "reject",
+        description="Multitask strategy to use. Must be one of 'reject', 'interrupt', 'rollback', or 'enqueue'.",
+        title="Multitask Strategy",
+    )
+    if_not_exists: Optional[IfNotExists] = Field(
+        "reject",
+        description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
+        title="If Not Exists",
+    )
+    after_seconds: Optional[int] = Field(
+        None,
+        description="The number of seconds to wait before starting the run. Use to schedule future runs.",
+        title="After Seconds",
+    )
+
+
 class RunWaitResponse(BaseModel):
     run: Optional[Run] = Field(None, description="The run information.", title="Run")
     values: Optional[Dict[str, Any]] = Field(
@@ -469,6 +433,72 @@ class RunWaitResponse(BaseModel):
     )
     messages: Optional[List[Message]] = Field(
         None, description="The messages returned by the run.", title="Messages"
+    )
+
+
+class RunCreateStateless(BaseModel):
+    agent_id: Optional[str] = Field(
+        None,
+        description="The agent ID to run. If not provided will use the default agent for this service.",
+        title="Agent Id",
+    )
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None, description="The input to the agent.", title="Input"
+    )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass an input to the agent.",
+        title="Messages",
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Metadata to assign to the run.", title="Metadata"
+    )
+    config: Optional[Config] = Field(
+        None, description="The configuration for the agent.", title="Config"
+    )
+    webhook: Optional[AnyUrl] = Field(
+        None, description="Webhook to call after run finishes.", title="Webhook"
+    )
+    stream_mode: Optional[Union[List[StreamModeEnum], StreamMode]] = Field(
+        ["values"], description="The stream mode(s) to use.", title="Stream Mode"
+    )
+    on_completion: Optional[OnCompletion] = Field(
+        "delete",
+        description="Whether to delete or keep the thread created for a stateless run. Must be one of 'delete' or 'keep'.",
+        title="On Completion",
+    )
+    on_disconnect: Optional[OnDisconnect] = Field(
+        "cancel",
+        description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
+        title="On Disconnect",
+    )
+    multitask_strategy: Optional[MultitaskStrategy] = Field(
+        "reject",
+        description="Multitask strategy to use. Must be one of 'reject', 'interrupt', 'rollback', or 'enqueue'.",
+        title="Multitask Strategy",
+    )
+    after_seconds: Optional[int] = Field(
+        None,
+        description="The number of seconds to wait before starting the run. Use to schedule future runs.",
+        title="After Seconds",
+    )
+
+
+class ThreadSearchRequest(BaseModel):
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Thread metadata to filter on.", title="Metadata"
+    )
+    values: Optional[Dict[str, Any]] = Field(
+        None, description="State values to filter on.", title="Values"
+    )
+    status: Optional[ThreadStatus] = Field(
+        None, description="Thread status to filter on.", title="Thread Status"
+    )
+    limit: Optional[conint(ge=1, le=1000)] = Field(
+        10, description="Maximum number to return.", title="Limit"
+    )
+    offset: Optional[conint(ge=0)] = Field(
+        0, description="Offset to start from.", title="Offset"
     )
 
 
@@ -483,8 +513,8 @@ class Thread(BaseModel):
     metadata: Dict[str, Any] = Field(
         ..., description="The thread metadata.", title="Metadata"
     )
-    status: Status1 = Field(
-        ..., description="The status of the thread.", title="Status"
+    status: ThreadStatus = Field(
+        ..., description="The status of the thread.", title="Thread Status"
     )
     values: Optional[Dict[str, Any]] = Field(
         None, description="The current state of the thread.", title="Values"
