@@ -408,6 +408,24 @@ class RunCreateStateful(BaseModel):
     )
 
 
+class RunResumeStateful(BaseModel):
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None,
+        description="The input to the graph to resume it from an interrupted state.",
+        title="Input",
+    )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass an input to the agent.",
+        title="Messages",
+    )
+    after_seconds: Optional[int] = Field(
+        None,
+        description="The number of seconds to wait before resuming the run. Use to resume runs in the future.",
+        title="After Seconds",
+    )
+
+
 class RunWaitResponse(BaseModel):
     run: Optional[Run] = Field(None, description="The run information.", title="Run")
     values: Optional[Dict[str, Any]] = Field(
