@@ -1479,7 +1479,12 @@
                 "type": "boolean",
                 "title": "Messages",
                 "description": "Whether the agent supports Messages as input/output/state. If true, the agent uses the `messages` key in threads/runs endpoints."
-              }
+              },
+              "ap.io.streaming": {
+                "type": "boolean",
+                "title": "Streaming",
+                "description": "Whether the agent supports streaming output."
+              },
             },
             "additionalProperties": true
           }
