@@ -2231,7 +2231,6 @@
           }
         },
         "required": [
-          "role",
           "content"
         ],
         "additionalProperties": true
