@@ -819,6 +819,80 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Update Run, Wait for Output",
+        "description": "Update a run in a thread. Wait for the final output and then return it.",
+        "operationId": "update_and_wait_run",
+        "parameters": [
+          {
+            "description": "The ID of the run.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id",
+              "description": "The ID of the run."
+            },
+            "name": "run_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunWaitResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/runs/{run_id}/stream": {
@@ -854,6 +928,81 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Update Run, Stream Output",
+        "description": "Update a run, stream the output.",
+        "operationId": "update_and_stream_run",
+        "parameters": [
+          {
+            "description": "The ID of the run.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id",
+              "description": "The ID of the run."
+            },
+            "name": "run_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "The server will send a stream of events in SSE format.\n\n**Example event**:\n\nid: 1\n\nevent: message\n\ndata: {}"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/json": {
                 "schema": {
@@ -1632,6 +1781,79 @@
         "title": "RunCreate",
         "description": "Payload for creating a run."
       },
+      "RunUpdate": {
+        "properties": {
+          "command": {
+            "type": "object",
+            "properties": {
+              "update": {
+                "anyOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Update",
+                "description": "An update to the state."
+              },
+              "resume": {
+                "anyOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Resume",
+                "description": "Name of the node(s) to navigate to next or node(s) to be executed with a provided input."
+              },
+              "goto": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/Send"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Send"
+                    }
+                  }
+                ],
+                "title": "Goto",
+                "description": "Name of the node(s) to navigate to next or node(s) to be executed with a provided input."
+              }
+            },
+            "required": []
+          }
+        }
+      },
       "Run": {
         "allOf": [
           {
@@ -2211,6 +2433,27 @@
             "description": "A dictionary of additional information about the error."
           }
         }
+      },
+      "Send": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "title": "Node",
+            "description": "The node to send the message to."
+          },
+          "input": {
+            "type": "object",
+            "title": "Input",
+            "description": "The message to send."
+          }
+        },
+        "title": "Send",
+        "description": "A message or packet to send to a specific node in the graph.",
+        "required": [
+          "node",
+          "input"
+        ]
       }
     },
     "responses": {

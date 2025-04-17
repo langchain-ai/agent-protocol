@@ -324,6 +324,13 @@ class ErrorResponse(BaseModel):
     )
 
 
+class Send(BaseModel):
+    node: str = Field(..., description="The node to send the message to.", title="Node")
+    input: Dict[str, Any] = Field(
+        ..., description="The message to send.", title="Input"
+    )
+
+
 class AgentsSearchPostRequest(BaseModel):
     name: Optional[str] = Field(None, description="Name of the agent to search.")
     metadata: Optional[Dict[str, Any]] = Field(
@@ -396,6 +403,26 @@ class RunCreate(BaseModel):
         description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
         title="If Not Exists",
     )
+
+
+class Command(BaseModel):
+    update: Optional[Union[Dict[str, Any], List]] = Field(
+        None, description="An update to the state.", title="Update"
+    )
+    resume: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None,
+        description="Name of the node(s) to navigate to next or node(s) to be executed with a provided input.",
+        title="Resume",
+    )
+    goto: Optional[Union[str, List[str], Send, List[Send]]] = Field(
+        None,
+        description="Name of the node(s) to navigate to next or node(s) to be executed with a provided input.",
+        title="Goto",
+    )
+
+
+class RunUpdate(BaseModel):
+    command: Optional[Command] = None
 
 
 class Run(RunCreate):
