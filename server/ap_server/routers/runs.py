@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from ..models import ErrorResponse, RunCreate, RunWaitResponse, Union
+from ..models import ErrorResponse, RunCreate, RunUpdate, RunWaitResponse, UUID, Union
 
 router = APIRouter(tags=["Runs"])
 
@@ -40,5 +40,43 @@ def create_and_stream_run(body: RunCreate) -> Union[str, ErrorResponse]:
 def create_and_wait_run(body: RunCreate) -> Union[RunWaitResponse, ErrorResponse]:
     """
     Create Run, Wait for Output
+    """
+    pass
+
+
+@router.post(
+    "/runs/{run_id}/stream",
+    response_model=str,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def update_and_stream_run(
+    run_id: UUID, body: RunUpdate = ...
+) -> Union[str, ErrorResponse]:
+    """
+    Update Run, Stream Output
+    """
+    pass
+
+
+@router.post(
+    "/runs/{run_id}/wait",
+    response_model=RunWaitResponse,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def update_and_wait_run(
+    run_id: UUID, body: RunUpdate = ...
+) -> Union[RunWaitResponse, ErrorResponse]:
+    """
+    Update Run, Wait for Output
     """
     pass

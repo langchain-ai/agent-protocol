@@ -97,6 +97,8 @@ Class | Method | HTTP request | Description
 *BackgroundRunsApi* | [**wait_run**](docs/BackgroundRunsApi.md#wait_run) | **GET** /runs/{run_id}/wait | Wait for Run output
 *RunsApi* | [**create_and_stream_run**](docs/RunsApi.md#create_and_stream_run) | **POST** /runs/stream | Create Run, Stream Output
 *RunsApi* | [**create_and_wait_run**](docs/RunsApi.md#create_and_wait_run) | **POST** /runs/wait | Create Run, Wait for Output
+*RunsApi* | [**update_and_stream_run**](docs/RunsApi.md#update_and_stream_run) | **POST** /runs/{run_id}/stream | Update Run, Stream Output
+*RunsApi* | [**update_and_wait_run**](docs/RunsApi.md#update_and_wait_run) | **POST** /runs/{run_id}/wait | Update Run, Wait for Output
 *StoreApi* | [**delete_item**](docs/StoreApi.md#delete_item) | **DELETE** /store/items | Delete Store Item
 *StoreApi* | [**get_item**](docs/StoreApi.md#get_item) | **GET** /store/items | Get Store Item
 *StoreApi* | [**list_namespaces**](docs/StoreApi.md#list_namespaces) | **POST** /store/namespaces | List namespaces
@@ -120,18 +122,23 @@ Class | Method | HTTP request | Description
  - [Content](docs/Content.md)
  - [ContentOneOfInner](docs/ContentOneOfInner.md)
  - [ErrorResponse](docs/ErrorResponse.md)
+ - [Goto](docs/Goto.md)
  - [Input](docs/Input.md)
  - [Item](docs/Item.md)
  - [Message](docs/Message.md)
  - [MessageAnyBlock](docs/MessageAnyBlock.md)
  - [MessageTextBlock](docs/MessageTextBlock.md)
+ - [Resume](docs/Resume.md)
  - [Run](docs/Run.md)
  - [RunCreate](docs/RunCreate.md)
  - [RunSearchRequest](docs/RunSearchRequest.md)
  - [RunStatus](docs/RunStatus.md)
+ - [RunUpdate](docs/RunUpdate.md)
+ - [RunUpdateCommand](docs/RunUpdateCommand.md)
  - [RunWaitResponse](docs/RunWaitResponse.md)
  - [SearchAgentsRequest](docs/SearchAgentsRequest.md)
  - [SearchItemsResponse](docs/SearchItemsResponse.md)
+ - [Send](docs/Send.md)
  - [StoreDeleteRequest](docs/StoreDeleteRequest.md)
  - [StoreListNamespacesRequest](docs/StoreListNamespacesRequest.md)
  - [StorePutRequest](docs/StorePutRequest.md)
@@ -144,6 +151,7 @@ Class | Method | HTTP request | Description
  - [ThreadSearchRequest](docs/ThreadSearchRequest.md)
  - [ThreadState](docs/ThreadState.md)
  - [ThreadStatus](docs/ThreadStatus.md)
+ - [Update](docs/Update.md)
 
 
 <a id="documentation-for-authorization"></a>
