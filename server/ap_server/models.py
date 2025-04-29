@@ -286,7 +286,9 @@ class Message(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
-    role: str = Field(..., description="The role of the message.", title="Role")
+    role: Optional[str] = Field(
+        None, description="The role of the message.", title="Role"
+    )
     content: Union[str, List[Union[Content, Content1]]] = Field(
         ..., description="The content of the message.", title="Content"
     )
