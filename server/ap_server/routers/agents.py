@@ -36,11 +36,10 @@ def search_agents(
                 agent_id="agent_1",
                 name="find_legal_docs",
                 description="An agent that can find legal documents.",
-                capabilities=Capabilities()
+                capabilities=Capabilities(),
             )
         ]
     )
-
 
 
 @router.get(
@@ -74,11 +73,11 @@ def get_agent_schemas(agent_id: str) -> Union[AgentSchema, ErrorResponse]:
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Text to search for relevant legal documents"
+                        "description": "Text to search for relevant legal documents",
                     }
                 },
                 "required": ["query"],
-                "additionalProperties": False
+                "additionalProperties": False,
             },
             output_schema={},
             state_schema={},

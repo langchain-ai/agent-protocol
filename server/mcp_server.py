@@ -27,6 +27,7 @@ curl -X POST "http://localhost:8000/mcp/" \
        }
      }'
 """
+
 import json
 from typing import Any, Sequence
 
@@ -40,6 +41,7 @@ URL = "http://localhost:8002"
 
 server = Server(name="Agent Protocol MCP")
 configuration = ap_client.Configuration(host=URL)
+
 
 class AgentProtocolMCP(FastMCP):
     """Agent Protocol MCP."""
@@ -88,19 +90,14 @@ class AgentProtocolMCP(FastMCP):
                     # Not using a state since this is a stateless server
                     thread_id=None,
                     agent_id=name,
-                    input=arguments
+                    input=arguments,
                 )
             )
             # The easiest thing is to encode the values as JSON and put them
             # into a TextContent object.
             # You can use other return types if they are appropriate for your use
             # case.
-            return [
-                TextContent(
-                    type="text",
-                    text=json.dumps(response.values)
-                )
-            ]
+            return [TextContent(type="text", text=json.dumps(response.values))]
 
 
 mcp = AgentProtocolMCP(
@@ -110,6 +107,6 @@ mcp = AgentProtocolMCP(
     stateless_http=True,
     # Currently JSON response makes more sense since we're only doing tool calls
     # and aren't sending progress notifications.
-    json_response=True
+    json_response=True,
 )
 app = mcp.streamable_http_app()
