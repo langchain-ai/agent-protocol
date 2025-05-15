@@ -7,6 +7,7 @@ from fastapi import APIRouter
 
 from ..models import (
     Agent,
+    Capabilities,
     AgentSchema,
     AgentsSearchPostRequest,
     AgentsSearchPostResponse,
@@ -29,7 +30,17 @@ def search_agents(
     """
     Search Agents
     """
-    pass
+    return AgentsSearchPostResponse(
+        root=[
+            Agent(
+                agent_id="agent_1",
+                name="find_legal_docs",
+                description="An agent that can find legal documents.",
+                capabilities=Capabilities()
+            )
+        ]
+    )
+
 
 
 @router.get(
@@ -55,4 +66,21 @@ def get_agent_schemas(agent_id: str) -> Union[AgentSchema, ErrorResponse]:
     """
     Get Agent Schemas
     """
-    pass
+    if agent_id == "agent_1":
+        return AgentSchema(
+            agent_id=agent_id,
+            input_schema={
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Text to search for relevant legal documents"
+                    }
+                },
+                "required": ["query"],
+                "additionalProperties": False
+            },
+            output_schema={},
+            state_schema={},
+        )
+    return ErrorResponse(code=404, message="No such agent.")

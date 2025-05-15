@@ -6,14 +6,23 @@ authors = [
     {name = "Nuno Campos",email = "nuno@langchain.dev"}
 ]
 license = {text = "MIT"}
-readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dependencies = [
     "pydantic (>=2.10.6,<3.0.0)",
-    "fastapi (>=0.115.8,<0.116.0)"
+    "fastapi (>=0.115.8,<0.116.0)",
+    "mcp>=1.8.1",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ap-client",
+    "ipython>=8.36.0",
+]
+
+[tool.uv.sources]
+ap-client = { path = "../client-python" }
