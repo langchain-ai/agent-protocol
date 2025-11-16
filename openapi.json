@@ -973,6 +973,193 @@
         }
       }
     },
+    "/runs/resume": {
+      "patch": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Resume Run (start execution from interrupted thread)",
+        "description": "Resume a thread that is in an interrupted (suspended) state. Thread ID is required. Returns the updated Run object (typically queued or in_progress).",
+        "operationId": "resume_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunResume"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. This will be returned if the underlying thread is not in an interrupted state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/resume/stream": {
+      "patch": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Resume Run and Stream Output",
+        "description": "Resume a thread that is in an interrupted (suspended) state and stream its output. Convenience equivalent to PATCH /runs/resume followed by GET /runs/{run_id}/stream.",
+        "operationId": "resume_and_stream_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunResumeStream"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "The server will send a stream of events in SSE format.\n\n**Example event**:\n\nid: 1\n\nevent: message\n\ndata: {}"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. This will be returned if the underlying thread is not in an interrupted state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/runs/resume/wait": {
+      "patch": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Resume Run and Wait",
+        "description": "Resume a thread that is in an interrupted state and wait for its completion. Equivalent to PATCH /runs/resume followed by GET /runs/{run_id}/wait.",
+        "operationId": "resume_and_wait_run",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunResume"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunWaitResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict. This will be returned if the underlying thread is not in an interrupted state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/runs/stream": {
       "post": {
         "tags": ["Runs"],
@@ -1531,6 +1718,151 @@
         "required": [],
         "title": "RunCreate",
         "description": "Payload for creating a run."
+      },
+      "RunResume": {
+        "properties": {
+          "thread_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Thread Id",
+            "description": "The ID of the thread to resume. Must refer to an existing thread that is in an interrupted state."
+          },
+          "agent_id": {
+            "type": "string",
+            "title": "Agent Id",
+            "description": "The agent ID to run. If not provided will use the agent associated with this thread (or the default agent for this service). 'agent_id' is ignored unless Agents stage is implemented."
+          },
+          "input": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input",
+            "description": "The input to the agent."
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "title": "Messages",
+            "description": "The messages to pass an input to the agent."
+          },
+          "metadata": {
+            "type": "object",
+            "title": "Metadata",
+            "description": "Metadata to assign to the run."
+          },
+          "config": {
+            "properties": {
+              "tags": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "title": "Tags"
+              },
+              "recursion_limit": {
+                "type": "integer",
+                "title": "Recursion Limit"
+              },
+              "configurable": {
+                "type": "object",
+                "title": "Configurable"
+              }
+            },
+            "type": "object",
+            "title": "Config",
+            "description": "The configuration for the agent."
+          },
+          "webhook": {
+            "type": "string",
+            "maxLength": 65536,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Webhook",
+            "description": "Webhook to call after run finishes."
+          },
+          "on_completion": {
+            "type": "string",
+            "enum": [
+              "keep",
+              "delete"
+            ],
+            "title": "On Completion",
+            "description": "Whether to delete or keep the thread when run completes. Must be one of 'delete' or 'keep'. Defaults to 'keep'."
+          },
+          "on_disconnect": {
+            "type": "string",
+            "enum": [
+              "cancel",
+              "continue"
+            ],
+            "title": "On Disconnect",
+            "description": "The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
+            "default": "cancel"
+          }
+        },
+        "type": "object",
+        "required": [
+          "thread_id"
+        ],
+        "title": "RunResume",
+        "description": "Payload for resuming a run from an interrupted thread. Requires an existing thread; does not create new threads."
+      },
+      "RunResumeStream": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RunResume"
+          },
+          {
+            "properties": {
+              "stream_mode": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/StreamMode"
+                  },
+                  {
+                    "items": {
+                      "$ref": "#/components/schemas/StreamMode"
+                    },
+                    "type": "array"
+                  }
+                ],
+                "title": "Stream Mode",
+                "description": "The stream mode(s) to use.",
+                "default": "values"
+              }
+            },
+            "type": "object",
+            "required": [
+              "run_id",
+              "created_at",
+              "updated_at",
+              "status",
+              "metadata"
+            ],
+            "title": "Run"
+          }
+        ],
+        "title": "RunResumeStream",
+        "description": "Payload for resuming a run and streaming the output."
       },
       "RunStream": {
         "allOf": [
