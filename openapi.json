@@ -29,9 +29,7 @@
   "paths": {
     "/agents/search": {
       "post": {
-        "tags": [
-          "Agents"
-        ],
+        "tags": ["Agents"],
         "summary": "Search Agents",
         "description": "List Agents available in this service.",
         "operationId": "search_agents",
@@ -110,9 +108,7 @@
     },
     "/agents/{agent_id}": {
       "get": {
-        "tags": [
-          "Agents"
-        ],
+        "tags": ["Agents"],
         "summary": "Get Agent",
         "description": "Get an agent by ID.",
         "operationId": "get_agent",
@@ -155,9 +151,7 @@
     },
     "/agents/{agent_id}/schemas": {
       "get": {
-        "tags": [
-          "Agents"
-        ],
+        "tags": ["Agents"],
         "summary": "Get Agent Schemas",
         "description": "Get an agent's schemas by ID.",
         "operationId": "get_agent_schemas",
@@ -210,9 +204,7 @@
     },
     "/threads": {
       "post": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Create Thread",
         "description": "Create a thread.",
         "operationId": "create_thread",
@@ -262,9 +254,7 @@
     },
     "/threads/search": {
       "post": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Search Threads",
         "description": "Search for threads.\n\nThis endpoint also functions as the endpoint to list all threads.",
         "operationId": "search_threads",
@@ -308,9 +298,7 @@
     },
     "/threads/{thread_id}/history": {
       "get": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Get Thread History",
         "description": "Get all past states for a thread.",
         "operationId": "get_thread_history",
@@ -386,9 +374,7 @@
     },
     "/threads/{thread_id}/copy": {
       "post": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Copy Thread",
         "description": "Create a new thread with a copy of the state and checkpoints from an existing thread.",
         "operationId": "copy_thread",
@@ -442,9 +428,7 @@
     },
     "/threads/{thread_id}": {
       "get": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Get Thread",
         "description": "Get a thread by ID.",
         "operationId": "get_thread",
@@ -496,9 +480,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Delete Thread",
         "description": "Delete a thread by ID.",
         "operationId": "delete_thread",
@@ -543,9 +525,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "Threads"
-        ],
+        "tags": ["Threads"],
         "summary": "Patch Thread",
         "description": "Update a thread.",
         "operationId": "patch_thread",
@@ -609,9 +589,7 @@
     },
     "/runs/search": {
       "post": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Search Runs",
         "description": "List runs for a thread, agent or status",
         "operationId": "search_runs",
@@ -664,9 +642,7 @@
     },
     "/runs/{run_id}": {
       "get": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Get Run",
         "description": "Get a run by ID.",
         "operationId": "get_run",
@@ -718,9 +694,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Delete Run",
         "description": "Delete a run by ID.",
         "operationId": "delete_run",
@@ -767,9 +741,7 @@
     },
     "/runs/{run_id}/wait": {
       "get": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Wait for Run output",
         "description": "Wait for a run to finish, return the final output. If the run already finished, returns its final output immediately.",
         "operationId": "wait_run",
@@ -823,9 +795,7 @@
     },
     "/runs/{run_id}/stream": {
       "get": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Stream output from Run",
         "description": "Join the output stream of an existing run. This endpoint streams output in real-time from a run similar to the /threads/__THREAD_ID__/runs/stream endpoint. Only output produced after this endpoint is called will be streamed.",
         "operationId": "stream_run",
@@ -877,9 +847,7 @@
     },
     "/runs/{run_id}/cancel": {
       "post": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Cancel Run",
         "operationId": "cancel_run",
         "parameters": [
@@ -910,10 +878,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "interrupt",
-                "rollback"
-              ],
+              "enum": ["interrupt", "rollback"],
               "title": "Action",
               "default": "interrupt"
             },
@@ -950,9 +915,7 @@
     },
     "/runs": {
       "post": {
-        "tags": [
-          "Background Runs"
-        ],
+        "tags": ["Background Runs"],
         "summary": "Create Background Run",
         "description": "Create a run in a new thread, return the run ID immediately. Don't wait for the final run output.",
         "operationId": "create_run",
@@ -1012,9 +975,7 @@
     },
     "/runs/stream": {
       "post": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Create Run, Stream Output",
         "description": "Create a run in a new thread, stream the output.",
         "operationId": "create_and_stream_run",
@@ -1075,9 +1036,7 @@
     },
     "/runs/wait": {
       "post": {
-        "tags": [
-          "Runs"
-        ],
+        "tags": ["Runs"],
         "summary": "Create Run, Wait for Output",
         "description": "Create a run in a new thread. Wait for the final output and then return it.",
         "operationId": "create_and_wait_run",
@@ -1137,9 +1096,7 @@
     },
     "/store/items": {
       "put": {
-        "tags": [
-          "Store"
-        ],
+        "tags": ["Store"],
         "summary": "Insert or Update Item",
         "operationId": "put_item",
         "requestBody": {
@@ -1169,9 +1126,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Store"
-        ],
+        "tags": ["Store"],
         "summary": "Delete Store Item",
         "operationId": "delete_item",
         "requestBody": {
@@ -1211,9 +1166,7 @@
         }
       },
       "get": {
-        "tags": [
-          "Store"
-        ],
+        "tags": ["Store"],
         "summary": "Get Store Item",
         "operationId": "get_item",
         "parameters": [
@@ -1283,9 +1236,7 @@
     },
     "/store/items/search": {
       "post": {
-        "tags": [
-          "Store"
-        ],
+        "tags": ["Store"],
         "summary": "Search Store Items",
         "operationId": "search_items",
         "requestBody": {
@@ -1324,9 +1275,7 @@
     },
     "/store/namespaces": {
       "post": {
-        "tags": [
-          "Store"
-        ],
+        "tags": ["Store"],
         "summary": "List namespaces",
         "operationId": "list_namespaces",
         "requestBody": {
@@ -1408,11 +1357,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "agent_id",
-          "name",
-          "capabilities"
-        ],
+        "required": ["agent_id", "name", "capabilities"],
         "title": "Agent"
       },
       "AgentSchema": {
@@ -1444,34 +1389,19 @@
           }
         },
         "type": "object",
-        "required": [
-          "agent_id",
-          "input_schema",
-          "output_schema"
-        ],
+        "required": ["agent_id", "input_schema", "output_schema"],
         "title": "AgentSchema",
         "description": "Defines the structure and properties of an agent."
       },
       "RunStatus": {
         "type": "string",
-        "enum": [
-          "pending",
-          "error",
-          "success",
-          "timeout",
-          "interrupted"
-        ],
+        "enum": ["pending", "error", "success", "timeout", "interrupted"],
         "title": "Status",
         "description": "The status of the run. One of 'pending', 'error', 'success', 'timeout', 'interrupted'."
       },
       "StreamMode": {
         "type": "string",
-        "enum": [
-          "values",
-          "messages",
-          "updates",
-          "custom"
-        ]
+        "enum": ["values", "messages", "updates", "custom"]
       },
       "RunWaitResponse": {
         "type": "object",
@@ -1578,29 +1508,20 @@
           },
           "on_completion": {
             "type": "string",
-            "enum": [
-              "delete",
-              "keep"
-            ],
+            "enum": ["delete", "keep"],
             "title": "On Completion",
             "description": "Whether to delete or keep the thread when run completes. Must be one of 'delete' or 'keep'. Defaults to 'delete' when thread_id not provided, otherwise 'keep'."
           },
           "on_disconnect": {
             "type": "string",
-            "enum": [
-              "cancel",
-              "continue"
-            ],
+            "enum": ["cancel", "continue"],
             "title": "On Disconnect",
             "description": "The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
             "default": "cancel"
           },
           "if_not_exists": {
             "type": "string",
-            "enum": [
-              "create",
-              "reject"
-            ],
+            "enum": ["create", "reject"],
             "title": "If Not Exists",
             "description": "How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
             "default": "reject"
@@ -1833,9 +1754,7 @@
         },
         "type": "object",
         "additionalProperties": true,
-        "required": [
-          "checkpoint_id"
-        ],
+        "required": ["checkpoint_id"],
         "title": "ThreadCheckpoint",
         "description": "Structured identifier for a thread checkpoint, ie. an entry in the thread's history."
       },
@@ -1866,10 +1785,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "checkpoint",
-          "values"
-        ],
+        "required": ["checkpoint", "values"],
         "title": "ThreadState"
       },
       "ThreadCreate": {
@@ -1887,10 +1803,7 @@
           },
           "if_exists": {
             "type": "string",
-            "enum": [
-              "raise",
-              "do_nothing"
-            ],
+            "enum": ["raise", "do_nothing"],
             "title": "If Exists",
             "description": "How to handle duplicate creation. Must be either 'raise' (raise error if duplicate), or 'do_nothing' (return existing thread).",
             "default": "raise"
@@ -1902,12 +1815,7 @@
       },
       "ThreadStatus": {
         "type": "string",
-        "enum": [
-          "idle",
-          "busy",
-          "interrupted",
-          "error"
-        ],
+        "enum": ["idle", "busy", "interrupted", "error"],
         "title": "Status",
         "description": "The status of the thread. One of 'idle', 'busy', 'interrupted', 'error'."
       },
@@ -1943,11 +1851,7 @@
       },
       "StorePutRequest": {
         "type": "object",
-        "required": [
-          "namespace",
-          "key",
-          "value"
-        ],
+        "required": ["namespace", "key", "value"],
         "properties": {
           "namespace": {
             "type": "array",
@@ -1973,9 +1877,7 @@
       },
       "StoreDeleteRequest": {
         "type": "object",
-        "required": [
-          "key"
-        ],
+        "required": ["key"],
         "properties": {
           "namespace": {
             "type": "array",
@@ -1998,10 +1900,7 @@
         "type": "object",
         "properties": {
           "namespace_prefix": {
-            "type": [
-              "array",
-              "null"
-            ],
+            "type": ["array", "null"],
             "items": {
               "type": "string"
             },
@@ -2009,10 +1908,7 @@
             "description": "List of strings representing the namespace prefix."
           },
           "filter": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": true,
             "title": "Filter",
             "description": "Optional dictionary of key-value pairs to filter results."
@@ -2073,13 +1969,7 @@
       },
       "Item": {
         "type": "object",
-        "required": [
-          "namespace",
-          "key",
-          "value",
-          "created_at",
-          "updated_at"
-        ],
+        "required": ["namespace", "key", "value", "created_at", "updated_at"],
         "properties": {
           "namespace": {
             "type": "array",
@@ -2141,10 +2031,7 @@
                           "type": "object"
                         }
                       },
-                      "required": [
-                        "text",
-                        "type"
-                      ],
+                      "required": ["text", "type"],
                       "title": "MessageTextBlock"
                     },
                     {
@@ -2157,9 +2044,7 @@
                           "type": "object"
                         }
                       },
-                      "required": [
-                        "type"
-                      ],
+                      "required": ["type"],
                       "additionalProperties": true,
                       "title": "MessageAnyBlock"
                     }
@@ -2180,17 +2065,12 @@
             "description": "The metadata of the message."
           }
         },
-        "required": [
-          "role",
-          "content"
-        ],
+        "required": ["role", "content"],
         "additionalProperties": true
       },
       "SearchItemsResponse": {
         "type": "object",
-        "required": [
-          "items"
-        ],
+        "required": ["items"],
         "properties": {
           "items": {
             "type": "array",
