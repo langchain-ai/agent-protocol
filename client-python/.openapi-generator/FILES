@@ -93,6 +93,4 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
-test/test_agent_schema.py
-test/test_run_stream.py
 tox.ini

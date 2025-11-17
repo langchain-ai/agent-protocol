@@ -3,19 +3,12 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import UUID
 
-from pydantic import (
-    AnyUrl,
-    AwareDatetime,
-    BaseModel,
-    ConfigDict,
-    Field,
-    RootModel,
-    conint,
-)
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field, RootModel, conint
 
 
 class Capabilities(BaseModel):
@@ -260,10 +253,10 @@ class Item(BaseModel):
     value: Dict[str, Any] = Field(
         ..., description="The value stored in the item. This is the document itself."
     )
-    created_at: AwareDatetime = Field(
+    created_at: datetime = Field(
         ..., description="The timestamp when the item was created."
     )
-    updated_at: AwareDatetime = Field(
+    updated_at: datetime = Field(
         ..., description="The timestamp when the item was last updated."
     )
 
@@ -396,10 +389,10 @@ class RunStream(RunCreate):
 
 class Run(RunStream):
     run_id: UUID = Field(..., description="The ID of the run.", title="Run Id")
-    created_at: AwareDatetime = Field(
+    created_at: datetime = Field(
         ..., description="The time the run was created.", title="Created At"
     )
-    updated_at: AwareDatetime = Field(
+    updated_at: datetime = Field(
         ..., description="The last time the run was updated.", title="Updated At"
     )
     status: RunStatus
@@ -425,10 +418,10 @@ class ThreadSearchRequest(BaseModel):
 
 class Thread(BaseModel):
     thread_id: UUID = Field(..., description="The ID of the thread.", title="Thread Id")
-    created_at: AwareDatetime = Field(
+    created_at: datetime = Field(
         ..., description="The time the thread was created.", title="Created At"
     )
-    updated_at: AwareDatetime = Field(
+    updated_at: datetime = Field(
         ..., description="The last time the thread was updated.", title="Updated At"
     )
     metadata: Dict[str, Any] = Field(
