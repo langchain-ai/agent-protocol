@@ -41,4 +41,15 @@ def create_and_wait_run(body: RunCreate) -> Union[RunWaitResponse, ErrorResponse
     """
     Create Run, Wait for Output
     """
-    pass
+    if body.thread_id:
+        raise NotImplementedError("Thread ID is not supported in this example.")
+    if body.agent_id == "agent_1":
+        return RunWaitResponse(
+            values={
+                "name": "Legal Document",
+                "description": "This is a legal document.",
+                "findings": ["Finding 1", "Finding 2"],
+            }
+        )
+    else:
+        raise NotImplementedError()
