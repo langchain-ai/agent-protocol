@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10,<4.0"
 dependencies = [
     "pydantic (>=2.10.6,<3.0.0)",
-    "fastapi (>=0.115.8,<0.116.0)"
+    "fastapi (>=0.134.0)"
 ]
 
 
