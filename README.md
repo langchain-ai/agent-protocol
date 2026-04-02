@@ -13,6 +13,8 @@ See the full OpenAPI docs [here](https://langchain-ai.github.io/agent-protocol/a
 - [Agent Protocol Python Server Stubs](./server/) - a Python server, using Pydantic V2 and FastAPI, auto-generated from the OpenAPI spec
 - [LangGraph.js API](https://github.com/langchain-ai/langgraphjs-api/tree/main/libs/langgraph-api) - an open-source implementation of this protocol, for LangGraph.js agents, using in-memory storage
 - [LangGraph Platform](https://www.langchain.com/pricing-langgraph-platform) - a commercial platform that implements a superset of this protocol for deploying any LLM agent in production
+- [Self-hosted async subagent server (Python)](https://github.com/langchain-ai/deepagents/tree/main/examples/async-subagent-server) - a Python example of a self-hosted agent implementing this protocol, designed to be invoked as an async subagent
+- [Self-hosted async subagent server (TypeScript)](https://github.com/langchain-ai/deepagentsjs/tree/main/examples/async-subagent-server) - a TypeScript example of a self-hosted agent implementing this protocol, designed to be invoked as an async subagent
 
 ## Why Agent Protocol
 
