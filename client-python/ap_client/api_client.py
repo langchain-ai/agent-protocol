@@ -391,7 +391,7 @@ class ApiClient:
             except ValueError:
                 data = response_text
         elif re.match(
-            r"^application/(json|[\w!#$&.+-^_]+\+json)\s*(;|$)",
+            r"^application/(json|[\w!#$&.\+\-\^_]+\+json)\s*(;|$)",
             content_type,
             re.IGNORECASE,
         ):
