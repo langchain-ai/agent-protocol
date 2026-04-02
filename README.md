@@ -43,7 +43,7 @@ What APIs do you need to enable multi-turn interactions?
   - Optimize storage by storing only diffs between states
 - Concurrency controls
   - Ensure that only one run per thread is active at a time
-  - Customizable handling of concurrent runs (interrupt, enqueue, interrupt or rollback)
+  - Customizable handling of concurrent runs (interrupt, enqueue, reject or rollback)
 - CRUD endpoints for threads
   - List threads by user, or other metadata
   - List threads by status (idle, interrupted, errored, finished)
