@@ -24,7 +24,7 @@ from ap_client.models.config import Config
 from ap_client.models.input import Input
 from ap_client.models.message import Message
 from ap_client.models.run_status import RunStatus
-from ap_client.models.stream_mode import StreamMode
+from ap_client.models.stream_mode1 import StreamMode1
 from typing import Set
 from typing_extensions import Self
 
@@ -65,7 +65,7 @@ class Run(BaseModel):
         default="reject",
         description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
     )
-    stream_mode: Optional[StreamMode] = None
+    stream_mode: Optional[StreamMode1] = None
     run_id: StrictStr = Field(description="The ID of the run.")
     created_at: datetime = Field(description="The time the run was created.")
     updated_at: datetime = Field(description="The last time the run was updated.")
@@ -209,7 +209,7 @@ class Run(BaseModel):
                 "if_not_exists": obj.get("if_not_exists")
                 if obj.get("if_not_exists") is not None
                 else "reject",
-                "stream_mode": StreamMode.from_dict(obj["stream_mode"])
+                "stream_mode": StreamMode1.from_dict(obj["stream_mode"])
                 if obj.get("stream_mode") is not None
                 else None,
                 "run_id": obj.get("run_id"),

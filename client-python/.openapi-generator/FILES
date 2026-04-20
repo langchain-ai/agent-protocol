@@ -29,6 +29,8 @@ ap_client/models/message_any_block.py
 ap_client/models/message_text_block.py
 ap_client/models/run.py
 ap_client/models/run_create.py
+ap_client/models/run_resume.py
+ap_client/models/run_resume_stream.py
 ap_client/models/run_search_request.py
 ap_client/models/run_status.py
 ap_client/models/run_stream.py
@@ -40,6 +42,7 @@ ap_client/models/store_list_namespaces_request.py
 ap_client/models/store_put_request.py
 ap_client/models/store_search_request.py
 ap_client/models/stream_mode.py
+ap_client/models/stream_mode1.py
 ap_client/models/thread.py
 ap_client/models/thread_checkpoint.py
 ap_client/models/thread_create.py
@@ -65,6 +68,8 @@ docs/MessageAnyBlock.md
 docs/MessageTextBlock.md
 docs/Run.md
 docs/RunCreate.md
+docs/RunResume.md
+docs/RunResumeStream.md
 docs/RunSearchRequest.md
 docs/RunStatus.md
 docs/RunStream.md
@@ -78,6 +83,7 @@ docs/StoreListNamespacesRequest.md
 docs/StorePutRequest.md
 docs/StoreSearchRequest.md
 docs/StreamMode.md
+docs/StreamMode1.md
 docs/Thread.md
 docs/ThreadCheckpoint.md
 docs/ThreadCreate.md
@@ -93,4 +99,7 @@ setup.cfg
 setup.py
 test-requirements.txt
 test/__init__.py
+test/test_run_resume.py
+test/test_run_resume_stream.py
+test/test_stream_mode1.py
 tox.ini
