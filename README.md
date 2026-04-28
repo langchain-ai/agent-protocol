@@ -130,11 +130,11 @@ Agent Protocol also defines a thread-centric streaming protocol for observing an
 
 The streaming schema and generated bindings live in [`streaming/`](./streaming/). The CDDL schema is the source of truth, with generated TypeScript and Python bindings available for clients and implementations that want strongly typed protocol payloads.
 
-Streaming endpoints:
+Endpoints:
 
-- `POST /threads/{thread_id}/stream` opens a filtered Server-Sent Events stream for a thread. The request body selects channels, namespace prefixes, optional depth, and optional replay position.
-- `GET /threads/{thread_id}/stream` upgrades to a WebSocket connection for bidirectional streaming. Once upgraded, commands, command responses, and unsolicited events share the same connection.
-- `POST /threads/{thread_id}/commands` sends a streaming protocol command over HTTP and returns the correlated command response.
+- [`POST /threads/{thread_id}/stream`](https://langchain-ai.github.io/agent-protocol/api.html#tag/streaming/POST/threads/{thread_id}/stream) - Open a filtered Server-Sent Events stream for a thread. The request body selects channels, namespace prefixes, optional depth, and optional replay position.
+- [`GET /threads/{thread_id}/stream`](https://langchain-ai.github.io/agent-protocol/api.html#tag/streaming/GET/threads/{thread_id}/stream) - Upgrade to a WebSocket connection for bidirectional streaming. Once upgraded, commands, command responses, and unsolicited events share the same connection.
+- [`POST /threads/{thread_id}/commands`](https://langchain-ai.github.io/agent-protocol/api.html#tag/streaming/POST/threads/{thread_id}/commands) - Send a streaming protocol command over HTTP and receive the correlated command response. This is the command sidecar for SSE clients; WebSocket clients send commands in-band.
 
 ## Agent Protocol in Action
 
