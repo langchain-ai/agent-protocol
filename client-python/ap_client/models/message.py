@@ -31,11 +31,14 @@ class Message(BaseModel):
     role: StrictStr = Field(description="The role of the message.")
     content: Content
     id: Optional[StrictStr] = Field(default=None, description="The ID of the message.")
+    name: Optional[StrictStr] = Field(
+        default=None, description="The name of the message author or tool."
+    )
     metadata: Optional[Dict[str, Any]] = Field(
         default=None, description="The metadata of the message."
     )
     additional_properties: Dict[str, Any] = {}
-    __properties: ClassVar[List[str]] = ["role", "content", "id", "metadata"]
+    __properties: ClassVar[List[str]] = ["role", "content", "id", "name", "metadata"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -105,6 +108,7 @@ class Message(BaseModel):
                 if obj.get("content") is not None
                 else None,
                 "id": obj.get("id"),
+                "name": obj.get("name"),
                 "metadata": obj.get("metadata"),
             }
         )

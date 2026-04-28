@@ -2058,6 +2058,11 @@
             "title": "Id",
             "description": "The ID of the message."
           },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "The name of the message author or tool."
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": true,
