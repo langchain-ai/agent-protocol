@@ -2,7 +2,7 @@
 
 Agent Protocol is our attempt at codifying the framework-agnostic APIs that are needed to serve LLM agents in production. This document explains the purpose of the protocol and makes the case for each of the endpoints in the spec. We finish by listing some roadmap items for the future.
 
-See the full OpenAPI docs [here](https://langchain-ai.github.io/agent-protocol/api.html) and the JSON spec [here](https://langchain-ai.github.io/agent-protocol/openapi.json).
+See the [full OpenAPI docs](https://langchain-ai.github.io/agent-protocol/api.html) and the [JSON spec](https://langchain-ai.github.io/agent-protocol/openapi.json).
 
 [LangGraph Platform](https://www.langchain.com/pricing-langgraph-platform) implements a superset of this protocol, but we very much welcome other implementations from the community.
 
@@ -10,6 +10,7 @@ See the full OpenAPI docs [here](https://langchain-ai.github.io/agent-protocol/a
 
 - [Agent Protocol OpenAPI Docs](https://langchain-ai.github.io/agent-protocol/api.html)
 - [Agent Protocol JSON Spec](https://langchain-ai.github.io/agent-protocol/openapi.json)
+- [Agent Streaming Protocol](./streaming/) - streaming primitives, CDDL schema, and generated Python/TypeScript bindings for live agent execution
 - [Agent Protocol Python Server Stubs](./server/) - a Python server, using Pydantic V2 and FastAPI, auto-generated from the OpenAPI spec
 - [LangGraph.js API](https://github.com/langchain-ai/langgraphjs-api/tree/main/libs/langgraph-api) - an open-source implementation of this protocol, for LangGraph.js agents, using in-memory storage
 - [LangGraph Platform](https://www.langchain.com/pricing-langgraph-platform) - a commercial platform that implements a superset of this protocol for deploying any LLM agent in production
@@ -122,6 +123,12 @@ Endpoints:
 ## Messages
 
 Messages have emerged as a core primitive in dealing with LLMs, and as such we have first-class support for messages in Agent Protocol. This is in addition to completely customizable input/output schemas for agents. We define a Message spec, which is a subset of the message formats supported by major LLM providers, such as OpenAI and Anthropic. In all endpoints that expose thread values, there is also a separate `messages` field, which agents can optionally implement.
+
+## Streaming Primitives
+
+Agent Protocol also defines a thread-centric streaming protocol for observing and controlling live agent executions. The streaming primitives cover transport framing, filtered subscriptions, replay, namespaces for nested agents, content-block message deltas, tool lifecycle events, run lifecycle events, human-in-the-loop input, state snapshots, updates, checkpoints, tasks, and custom events.
+
+The streaming schema and generated bindings live in [`streaming/`](./streaming/). The CDDL schema is the source of truth, with generated TypeScript and Python bindings available for clients and implementations that want strongly typed protocol payloads.
 
 ## Agent Protocol in Action
 
@@ -263,5 +270,5 @@ HTTP/1.1 204
 - Add detailed specification for each stream mode (currently this is left open to the implementer)
 - Add Store endpoint to perform a vector search over memory entries
 - Add param for `POST /threads/{thread_id}/runs/{run_id}/stream` to replay events since `event-id` before streaming new events
-- Add param to `POST /threads/{thread_id}/runs ` to optionally allow concurrent runs on the same thread (current spec makes this forbidden)
+- Add param to `POST /threads/{thread_id}/runs` to optionally allow concurrent runs on the same thread (current spec makes this forbidden)
 - (Open an issue and let us know what else should be here!)

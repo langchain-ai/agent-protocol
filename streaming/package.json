@@ -1,0 +1,31 @@
+{
+    "name": "@langchain/protocol",
+    "version": "0.0.0",
+    "private": true,
+    "description": "Protocol for LangChain",
+    "type": "module",
+    "scripts": {
+        "prepare": "simple-git-hooks",
+        "compile": "pnpm run compile:py && pnpm run compile:ts",
+        "validate:cddl": "cddl validate protocol.cddl",
+        "compile:py": "cddl2py protocol.cddl | python3 scripts/fixup.py > ./py/langchain_protocol/protocol.py",
+        "compile:ts": "cddl2ts protocol.cddl --field-case snake > ./js/protocol.ts",
+        "slides": "cd slides && pnpm run dev"
+    },
+    "dependencies": {
+        "cddl2py": "^0.2.2",
+        "cddl2ts": "^0.9.1"
+    },
+    "packageManager": "pnpm@10.33.0",
+    "devDependencies": {
+        "cddl": "^0.20.1",
+        "lint-staged": "^16.4.0",
+        "simple-git-hooks": "^2.13.1"
+    },
+    "simple-git-hooks": {
+        "pre-commit": "pnpm exec lint-staged"
+    },
+    "lint-staged": {
+        "*": "pnpm run validate:cddl"
+    }
+}

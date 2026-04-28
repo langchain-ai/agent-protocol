@@ -16,7 +16,7 @@
 // - Namespace-based filtering provides server-side routing
 // - Threads are the primary routing key across all transports
 // Status: DRAFT
-// Version: 0.5.0
+// Version: 0.0.13
 // ==========================================================================
 // ==========================================================================
 // 1. Shared Primitives
