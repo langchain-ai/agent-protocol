@@ -7,7 +7,7 @@ name = "langchain-protocol"
 description = "Python bindings for the LangChain agent streaming protocol"
 license = { text = "MIT" }
 readme = "README.md"
-version = "0.0.12"
+version = "0.0.13"
 requires-python = ">=3.10.0,<4.0.0"
 classifiers = [
   "Development Status :: 3 - Alpha",
