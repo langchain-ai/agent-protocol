@@ -1,0 +1,131 @@
+name: release streaming protocol
+run-name: Release streaming-protocol by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      dangerous-nonmain-release:
+        required: false
+        type: boolean
+        default: false
+        description: "Release from a non-main branch (danger!)"
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12"
+
+defaults:
+  run:
+    working-directory: py
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main' || inputs.dangerous-nonmain-release
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.check-version.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python + uv
+        uses: "./.github/actions/uv_setup"
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build project for distribution
+        run: uv build
+
+      - name: Upload build
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        with:
+          name: dist
+          path: py/dist/
+
+      - name: Read version
+        id: check-version
+        shell: python
+        run: |
+          import os
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"version={data['project']['version']}\n")
+
+  smoke-test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Python + uv
+        uses: "./.github/actions/uv_setup"
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: ${{ runner.temp }}/dist/
+
+      - name: Install built wheel and import
+        working-directory: ${{ runner.temp }}
+        run: |
+          uv venv
+          VIRTUAL_ENV=.venv uv pip install dist/*.whl
+          uv run python -c "import langchain_protocol; print(dir(langchain_protocol))"
+
+  publish:
+    needs:
+      - build
+      - smoke-test
+    runs-on: ubuntu-latest
+    permissions:
+      # Trusted publishing to PyPI:
+      # https://docs.pypi.org/trusted-publishers/adding-a-publisher/
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: py/dist/
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
+        with:
+          packages-dir: py/dist/
+          verbose: true
+          print-hash: true
+          attestations: false
+
+  mark-release:
+    needs:
+      - build
+      - smoke-test
+      - publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: dist
+          path: py/dist/
+
+      - name: Create Release
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
+        with:
+          artifacts: "py/dist/*"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          generateReleaseNotes: true
+          tag: langchain-protocol==${{ needs.build.outputs.version }}
+          commit: ${{ github.sha }}

@@ -1,0 +1,1155 @@
+; ==========================================================================
+; LangGraph Agent Streaming Protocol — Unified CDDL Schema
+;
+; Concise Data Definition Language (RFC 8610) specification for the
+; LangGraph Agent Streaming Protocol. This file is the single source
+; of truth from which TypeScript, Python, and Java types are generated.
+;
+; This specification unifies two protocol perspectives:
+;
+;   1. In-process protocol — content-block-centric, layered event model
+;      with typed lifecycle semantics (start/delta/finish) at each
+;      abstraction level (chat model, tool, graph, agent).
+;
+;   2. Streaming protocol — thread-centric design with connection-scoped
+;      event filtering, hierarchical namespace scoping, and multi-transport
+;      support (WebSocket, SSE, in-process).
+;
+; The result is a single protocol where:
+;   - Content blocks are the universal delta carrier for LLM streaming
+;   - Events have full lifecycle semantics (no inferred boundaries)
+;   - Namespace-based filtering provides server-side routing
+;   - Threads are the primary routing key across all transports
+;
+; Status: DRAFT
+; Version: 0.0.13
+; ==========================================================================
+
+
+; ==========================================================================
+; 1. Shared Primitives
+; ==========================================================================
+
+; JavaScript safe integer range
+js-int = -9007199254740991..9007199254740991
+js-uint = 0..9007199254740991
+
+; Hierarchical path identifying a position in the agent tree.
+; [] = root agent, ["agent_1"] = direct child, ["agent_1", "researcher"] = nested.
+Namespace = [* text]
+
+; Allows additional text-keyed fields for forward compatibility.
+Extensible = (* text => any)
+
+; Milliseconds since Unix epoch.
+Timestamp = uint
+
+; Flat scalar value used by concise metadata bags.
+MetadataScalar = null / bool / int / float / text
+
+; Author role for a transcript message on the messages channel.
+MessageRole = "ai" / "human" / "system"
+
+; Concise provider/model metadata for a streamed message.
+; This is not a general-purpose tracing/debug payload.
+; Implementations SHOULD NOT include large nested objects, arrays,
+; version maps, or runtime internals here.
+MessageMetadata = {
+  ? provider: text,
+  ? model: text,
+  ? modelType: text,
+  ? runId: text,
+  ? threadId: text,
+  ? systemFingerprint: text,
+  ? serviceTier: text,
+  * text => MetadataScalar,
+}
+
+
+; ==========================================================================
+; 2. Content Block Types
+;
+; LangChain content blocks are the universal carrier for streaming
+; deltas. The block's `type` field is the discriminant. New content
+; block types automatically work with the streaming protocol without
+; protocol changes.
+;
+; "Chunk" variants (ToolCallChunk, ServerToolCallChunk) carry
+; partial/incremental data during streaming. "Standard" variants carry
+; finalized data. ContentBlockFinish events upgrade chunks to their
+; standard counterparts (e.g. ToolCallChunk -> ToolCall).
+; ==========================================================================
+
+ContentBlock = TextContentBlock
+             / InvalidToolCall
+             / ReasoningContentBlock
+             / NonStandardContentBlock
+             / DataContentBlock
+             / ToolContentBlock
+
+; Union of all multimodal data content block types.
+DataContentBlock = ImageContentBlock
+                 / VideoContentBlock
+                 / AudioContentBlock
+                 / FileContentBlock
+
+; Union of all tool-related content block types (chunk and finalized).
+ToolContentBlock = ToolCall
+                 / ToolCallChunk
+                 / ServerToolCall
+                 / ServerToolCallChunk
+                 / ServerToolResult
+
+; Finalized content blocks (non-chunk types). Used in content-block-finish.
+FinalizedContentBlock = TextContentBlock
+                      / ReasoningContentBlock
+                      / ToolCall
+                      / InvalidToolCall
+                      / ServerToolCall
+                      / ServerToolResult
+                      / DataContentBlock
+                      / NonStandardContentBlock
+
+; Index of a block in an aggregate response. Used during streaming.
+BlockIndex = js-int / text
+
+TextContentBlock = {
+  type: "text",
+  text: text,
+  ? id: text,
+  ? index: BlockIndex,
+  ? annotations: [* Annotation],
+  Extensible,
+}
+
+Annotation = Citation / NonStandardAnnotation
+
+Citation = {
+  type: "citation",
+  ? id: text,
+  ? url: text,
+  ? title: text,
+  ? startIndex: uint,
+  ? endIndex: uint,
+  ? citedText: text,
+  Extensible,
+}
+
+NonStandardAnnotation = {
+  type: "non_standard_annotation",
+  ? id: text,
+  value: {* text => any},
+  Extensible,
+}
+
+ReasoningContentBlock = {
+  type: "reasoning",
+  ? reasoning: text,
+  ? id: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ToolCall = {
+  type: "tool_call",
+  id: text / null,
+  name: text,
+  args: {* text => any},
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ToolCallChunk = {
+  type: "tool_call_chunk",
+  id: text / null,
+  name: text / null,
+  args: text / null,                     ; Partial JSON string
+  ? index: BlockIndex,
+  Extensible,
+}
+
+InvalidToolCall = {
+  type: "invalid_tool_call",
+  id: text / null,
+  name: text / null,
+  args: text / null,
+  error: text / null,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ServerToolCall = {
+  type: "server_tool_call",
+  id: text,
+  name: text,
+  args: {* text => any},
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ServerToolCallChunk = {
+  type: "server_tool_call_chunk",
+  ? id: text,
+  ? name: text,
+  ? args: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ServerToolResult = {
+  type: "server_tool_result",
+  toolCallId: text,
+  status: "success" / "error",
+  ? id: text,
+  ? output: any,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+ImageContentBlock = {
+  type: "image",
+  ? id: text,
+  ? fileId: text,
+  ? url: text,
+  ? base64: text,                        ; Base64-encoded image data
+  ? mimeType: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+AudioContentBlock = {
+  type: "audio",
+  ? id: text,
+  ? fileId: text,
+  ? url: text,
+  ? base64: text,                        ; Base64-encoded audio data
+  ? mimeType: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+VideoContentBlock = {
+  type: "video",
+  ? id: text,
+  ? fileId: text,
+  ? url: text,
+  ? base64: text,                        ; Base64-encoded video data
+  ? mimeType: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+FileContentBlock = {
+  type: "file",
+  ? id: text,
+  ? fileId: text,
+  ? url: text,
+  ? base64: text,                        ; Base64-encoded file data
+  ? mimeType: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+; Provider-specific escape hatch for content blocks not modeled above.
+NonStandardContentBlock = {
+  type: "non_standard",
+  value: {* text => any},
+  ? id: text,
+  ? index: BlockIndex,
+  Extensible,
+}
+
+
+; ==========================================================================
+; 3. Top-Level Message Framing
+;
+; Three message types flow over the connection:
+;   Command         — client -> server
+;   CommandResponse — server -> client (success)
+;   ErrorResponse   — server -> client (failure)
+;   Event           — server -> client (unsolicited push)
+; ==========================================================================
+
+; --- Client -> Server ---
+
+Command = {
+  id: js-uint,
+  CommandData,
+  Extensible,
+}
+
+CommandData = (
+  RunCommand //
+  SubscriptionCommand //
+  AgentCommand //
+  InputCommand //
+  StateCommand
+)
+
+; --- Server -> Client ---
+
+Message = (
+  CommandResponse /
+  ErrorResponse /
+  Event
+)
+
+CommandResponse = {
+  type: "success",
+  id: js-uint,
+  result: ResultData,
+  ? meta: ResponseMeta,
+  Extensible,
+}
+
+ErrorResponse = {
+  type: "error",
+  id: js-uint / null,
+  error: ErrorCode,
+  message: text,
+  ? stacktrace: text,
+  ? meta: ResponseMeta,
+  Extensible,
+}
+
+Event = {
+  type: "event",
+  ? eventId: text,                       ; Unique ID for reconnection (maps to SSE id:)
+  ? seq: js-uint,                        ; Monotonic sequence number for ordering
+  EventData,
+  Extensible,
+}
+
+; --- Result / Error enums ---
+
+ResultData = (
+  RunResult //
+  SubscriptionResult //
+  AgentResult //
+  InputResult //
+  StateResult //
+  EmptyResult
+)
+
+EmptyResult = { Extensible }
+
+ErrorCode = "invalid_argument"
+          / "unknown_command"
+          / "unknown_error"
+          / "no_such_run"
+          / "no_such_subscription"
+          / "no_such_namespace"
+          / "no_such_interrupt"
+          / "no_such_checkpoint"
+          / "permission_denied"
+          / "not_supported"
+
+ResponseMeta = {
+  ? appliedThroughSeq: js-uint,
+  Extensible,
+}
+
+
+; ==========================================================================
+; 4. Thread-Centric Model
+;
+; The protocol is thread-centric: threads are the primary routing key
+; for commands, events, and subscriptions. There is no session handshake
+; or server-side session state.
+;
+; Thread IDs may be client-generated (UUID) or server-assigned. The
+; server creates the thread lazily on the first `run.input` if it does
+; not already exist.
+;
+; Transport endpoints:
+;
+; **SSE/HTTP:**
+;   POST /threads/:thread_id/stream   — filtered SSE event stream
+;   POST /threads/:thread_id/commands  — JSON command request/response
+;
+; **WebSocket:**
+;   ws://.../threads/:thread_id/stream — full-duplex connection
+;
+; Subscription model varies by transport:
+;
+; **SSE/HTTP:** Subscriptions are connection-scoped. Each
+; `POST .../events` request carries its own filter (channels, namespaces,
+; depth) and the server streams matching events for the lifetime of that
+; connection. Closing the connection unsubscribes. No subscription state
+; is persisted on the server. Event streams can be opened before or after
+; `run.input`; streams opened before a run exists stay idle until events
+; are produced.
+;
+; **WebSocket:** Subscriptions are managed via in-band
+; `subscription.subscribe` and `subscription.unsubscribe` commands on
+; the single bidirectional connection. Subscriptions persist across run
+; boundaries and are removed by explicit `subscription.unsubscribe` or
+; when the WebSocket connection is closed.
+;
+; Multiple connections may observe the same thread concurrently, each
+; with independent event filters. The thread is the durable identity
+; (checkpoint, state, run history); each connection is an ephemeral
+; transport scope for what a particular consumer sees.
+;
+; Cleanup is implicit: when the run completes and all connections close,
+; the server drops ephemeral in-memory state (event buffer, run session).
+; The thread itself persists in the checkpoint store.
+; ==========================================================================
+
+
+; ==========================================================================
+; 4a. Run Module
+;
+; `run.input` is the single entry point for all input to the graph.
+; The thread manages a state machine:
+;
+;   - No active run  → starts a new run with the provided input
+;   - Run interrupted → resumes with the input as the resume value
+;   - Run active      → injects input into the running graph
+;
+; The `assistantId` field identifies which deployed graph or agent to
+; run on this thread. It replaces session-level target binding.
+; ==========================================================================
+
+RunCommand = run.input
+
+run.input = {
+  method: "run.input",
+  params: RunInputParams,
+}
+
+RunInputParams = {
+  assistantId: text,                     ; Deployed graph/agent to run
+  input: any,                            ; Graph input, resume value, or injected message
+  ? config: {* text => any},             ; Per-run config overrides
+  ? metadata: {* text => any},           ; Per-run metadata
+}
+
+RunResult = {
+  ? runId: text,                         ; ID of the started or resumed run
+}
+
+
+; ==========================================================================
+; 5. Channels
+;
+; Each channel corresponds to a subscribable event stream. Clients
+; include channel names in event stream filters or subscription commands
+; to select which event types to receive.
+; ==========================================================================
+
+Channel = "values"                 ; Full graph state snapshots, including initial replay
+        / "updates"                ; Per-step or per-node state deltas
+        / "messages"               ; Transcript message and content-block streaming
+        / "tools"                  ; Tool invocation lifecycle and streamed output
+        / "lifecycle"              ; Run/subgraph status machine with parent→child correlation
+        / "input"                  ; Interrupt requests and human-in-the-loop prompts
+        / "checkpoints"            ; Lightweight checkpoint envelope for branching/time-travel
+        / "tasks"                  ; Pregel task creation and result events
+        / "custom"                 ; User-defined payloads emitted by the graph
+        / tstr .regexp "custom:.+" ; Namespaced custom channels (e.g. "custom:my-events")
+
+
+; ==========================================================================
+; 6. Subscription & Event Streaming
+;
+; The protocol supports two subscription models depending on transport:
+;
+; **SSE/HTTP transport (connection-scoped subscriptions):**
+; Clients open one or more `POST /threads/:thread_id/stream` requests,
+; each carrying an `EventStreamRequest` body with the desired channel
+; and namespace filters. The server responds with an SSE stream
+; filtered to match. Each connection IS the subscription — closing
+; the connection unsubscribes. No subscription state is persisted on
+; the server beyond the lifetime of the TCP connection.
+;
+; Multiple concurrent event streams are supported. Each stream
+; independently filters the same underlying event source. Clients
+; may bundle multiple channels into one connection or open dedicated
+; connections per channel.
+;
+; **WebSocket transport (in-band command subscriptions):**
+; WebSocket connections use `subscription.subscribe` and
+; `subscription.unsubscribe` as in-band commands on the single
+; bidirectional connection. Subscriptions persist across run
+; boundaries and are removed by explicit `subscription.unsubscribe`
+; or when the connection is closed.
+;
+; **Replay / reconnection:**
+; For SSE/HTTP, the `EventStreamRequest` includes an optional `since`
+; field (sequence number). The server replays matching events from its
+; ring buffer starting after that sequence, then switches to live
+; delivery. For WebSocket, `subscription.reconnect` serves the same
+; purpose.
+; ==========================================================================
+
+; --- Event stream request (SSE/HTTP transport only) ---
+;
+; Sent as the JSON body of `POST /threads/:thread_id/stream`.
+; The server responds with `Content-Type: text/event-stream`.
+
+EventStreamRequest = {
+  channels: [+ Channel],
+  ? namespaces: [* Namespace],           ; Prefix-match these namespace paths
+  ? depth: uint,                         ; Max depth below namespace prefix
+  ? since: js-uint,                      ; Replay events after this seq number
+  Extensible,
+}
+
+; --- WebSocket-only subscription commands ---
+
+SubscriptionCommand = (
+  subscription.subscribe //
+  subscription.unsubscribe //
+  subscription.reconnect
+)
+
+subscription.subscribe = {
+  method: "subscription.subscribe",
+  params: SubscribeParams,
+}
+
+SubscribeParams = {
+  channels: [+ Channel],
+  ? namespaces: [* Namespace],           ; Prefix-match these namespace paths
+  ? depth: uint,                         ; Max depth below namespace prefix
+  Extensible,
+}
+
+SubscribeResult = {
+  subscriptionId: text,
+  ? replayedEvents: uint,               ; Events replayed from buffer
+  Extensible,
+}
+
+subscription.unsubscribe = {
+  method: "subscription.unsubscribe",
+  params: UnsubscribeParams,
+}
+
+UnsubscribeParams = {
+  subscriptionId: text,
+  Extensible,
+}
+
+subscription.reconnect = {
+  method: "subscription.reconnect",
+  params: ReconnectParams,
+}
+
+ReconnectParams = {
+  runId: text,
+  ? lastEventId: text,                  ; Last event the client processed
+  ? subscriptions: [* text],            ; Subscription IDs to restore
+  Extensible,
+}
+
+ReconnectResult = {
+  restored: bool,
+  ? missedEvents: uint,
+  ? currentNamespaces: [* AgentStatusEntry],
+  Extensible,
+}
+
+AgentStatusEntry = {
+  namespace: Namespace,
+  status: AgentStatus,
+  Extensible,
+}
+
+SubscriptionResult = SubscribeResult / ReconnectResult / EmptyResult
+
+
+; ==========================================================================
+; 7. Agent / Lifecycle Module
+;
+; Hierarchy discovery and lifecycle tracking. The lifecycle channel
+; tracks the status of every namespace in the agent tree and provides
+; parent→child correlation for subgraph discovery via the `cause`
+; field on `started` events.
+; See proposal §17 (Channel Architecture) for the design rationale.
+; ==========================================================================
+
+AgentCommand = agent.getTree
+
+; --- agent.getTree ---
+
+agent.getTree = {
+  method: "agent.getTree",
+  params: AgentGetTreeParams,
+}
+
+AgentGetTreeParams = {
+  ? runId: text,
+}
+
+AgentTreeNode = {
+  namespace: Namespace,
+  status: AgentStatus,
+  graphName: text,
+  ? children: [* AgentTreeNode],
+  ? metadata: {* text => any},
+}
+
+AgentResult = {
+  tree: AgentTreeNode,
+}
+
+AgentStatus = "started"
+            / "running"
+            / "completed"
+            / "failed"
+            / "interrupted"
+
+
+; --- Event registry ---
+;
+; All server -> client events are registered here as a group choice.
+
+EventData = (
+  LifecycleEvent //
+  MessagesEvent //
+  ToolsEvent //
+  InputEvent //
+  ValuesEvent //
+  UpdatesEvent //
+  CheckpointsEvent //
+  CustomEvent //
+  TasksEvent
+)
+
+
+; --- Lifecycle events (server -> client, channel: "lifecycle") ---
+;
+; Lifecycle events track the status of the root run and all subgraphs.
+; The optional `cause` field on `started` events correlates a child
+; namespace back to whatever on the parent namespace triggered it,
+; enabling over-the-wire clients to reconstruct the subgraph tree
+; without product-specific knowledge.
+
+LifecycleEvent = {
+  method: "lifecycle",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: LifecycleData,
+  },
+}
+
+; Causation edge for a subgraph's `started` lifecycle event.
+;
+; Identifies what on the parent namespace caused this subgraph to
+; start. Populated by product-specific stream transformers (e.g.
+; deepagents' SubagentTransformer) before events reach the wire.
+; langgraph core and langgraph-api are product-agnostic and do not
+; populate this field. Optional — absent for the root graph and
+; for subgraphs whose spawning mechanism isn't yet modelled.
+;
+; Extensible via new variants; consumers MUST default-case unknown
+; `type` values to "unknown cause" rather than erroring, so future
+; additions don't break pinned clients.
+LifecycleCause = LifecycleCauseToolCall / LifecycleCauseSend / LifecycleCauseEdge
+
+; A tool call on the parent namespace spawned this subgraph.
+;
+; How it's produced in code:
+;   A tool node's handler body invokes a compiled subgraph — e.g.
+;   `await subagent.ainvoke(...)` or `subagent.astream(...)` from
+;   inside a `@tool`-decorated function. Deepagents' `task` tool
+;   is the canonical example: it calls `subagent.ainvoke(input)`
+;   to execute a nested agent, and each call becomes one subgraph
+;   run correlated back to the originating `tool_call_id`.
+;
+; Populated by: product-specific stream transformer (e.g.
+;   deepagents' SubagentTransformer / createSubagentTransformer).
+LifecycleCauseToolCall = {
+  type: "toolCall",
+  ; The `tool_call_id` from the originating `tool-started` event
+  ; on the parent namespace. Matches the `id` field of the
+  ; originating `tool_call` content block in the parent AI message.
+  toolCallId: text,
+}
+
+; A `Send` dispatched from a parent node spawned this subgraph.
+;
+; How it's produced in code:
+;   A parent node returns/yields one or more `Send(node, state)`
+;   objects (langgraph's fan-out primitive). Each `Send` creates a
+;   parallel pregel task; when the target node embeds a compiled
+;   subgraph, each `Send` instance spawns its own subgraph run.
+;   Typical in supervisor/worker patterns where the supervisor
+;   yields `Send("worker", work_item)` once per item.
+;
+; Populated by: (no transformer in current releases; declared for
+;   future supervisor-pattern transformers to emit).
+LifecycleCauseSend = {
+  type: "send",
+  ; Name of the parent node that issued the `Send`. Multiple Sends
+  ; from the same node in the same superstep share this value;
+  ; future protocol versions may add a disambiguating `sendIndex`
+  ; if per-Send identity is needed on the wire.
+  fromNode: text,
+}
+
+; A graph edge transitioned into this subgraph's entry node.
+;
+; How it's produced in code:
+;   A static edge (`graph.add_edge("a", "b")`) or a conditional
+;   edge (`graph.add_conditional_edges("a", router_fn)`) routes
+;   control into a node that embeds a compiled subgraph. Unlike
+;   `Send`, edge transitions are single-successor and do not
+;   fan out — one edge traversal produces exactly one subgraph run.
+;
+; Populated by: (no transformer in current releases; declared for
+;   future embedded-subgraph transformers to emit).
+LifecycleCauseEdge = {
+  type: "edge",
+  ; Name of the parent node the edge originated from.
+  fromNode: text,
+}
+
+LifecycleData = {
+  event: AgentStatus,
+  ? graphName: text,
+  ? cause: LifecycleCause,               ; Causation edge (see LifecycleCause)
+  ? error: text,
+  ? checkpoint: CheckpointRef,           ; Checkpoint reference for time-travel
+}
+
+
+; ==========================================================================
+; 8. Messages Module
+;
+; Content-block-centric transcript message streaming. AI-authored messages
+; may stream incrementally; human/system messages are typically replayed
+; as complete messages. Events follow a strict lifecycle:
+;
+;   message-start
+;     -> content-block-start(index=0, contentBlock)
+;       -> content-block-delta(index=0, contentBlock) ...
+;     -> content-block-finish(index=0, contentBlock)
+;     -> content-block-start(index=1, contentBlock)
+;       -> content-block-delta(index=1, contentBlock) ...
+;     -> content-block-finish(index=1, contentBlock)
+;   -> message-finish(reason)
+;
+; Content blocks MUST NOT interleave: block N must finish before block
+; N+1 starts. This constraint applies within a single message
+; (identified by namespace + node) and matches observed behavior of
+; all major LLM providers.
+;
+; Delta events carry LangChain ContentBlock instances directly —
+; the block's `type` field is the discriminant. This means adding
+; a new content block type to LangChain requires zero protocol changes.
+; ==========================================================================
+
+MessagesEvent = {
+  method: "messages",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    ? node: text,                        ; Graph node that produced this event
+    data: MessagesData,
+  },
+}
+
+MessagesData = MessageStartData
+             / ContentBlockStartData
+             / ContentBlockDeltaData
+             / ContentBlockFinishData
+             / MessageFinishData
+             / MessageErrorData
+
+; Emitted once at the start of a streamed or replayed transcript message.
+MessageStartData = {
+  event: "message-start",
+  role: MessageRole,                     ; Author role for this message
+  id: text,                              ; Unique ID for this message
+  ? metadata: MessageMetadata,           ; Concise provider/model metadata for AI messages
+  Extensible,
+}
+
+; Emitted when a new content block begins streaming. The contentBlock
+; carries the initial state (e.g. { type: "text", text: "" } or
+; { type: "tool_call_chunk", name: "search", args: "" }).
+ContentBlockStartData = {
+  event: "content-block-start",
+  index: uint,                           ; Positional index within the message
+  content: ContentBlock,
+  Extensible,
+}
+
+; Emitted for each incremental update within a content block. The
+; contentBlock carries only the delta for this update:
+;   { type: "text", text: "Hello " }           — text delta
+;   { type: "reasoning", reasoning: "Let me" } — reasoning delta
+;   { type: "tool_call_chunk", args: '{"q":' } — tool call args delta
+ContentBlockDeltaData = {
+  event: "content-block-delta",
+  index: uint,
+  content: ContentBlock,
+  Extensible,
+}
+
+; Emitted when a content block is complete. The contentBlock carries
+; the finalized block. For tool calls, this upgrades ToolCallChunk
+; to ToolCall with parsed args.
+ContentBlockFinishData = {
+  event: "content-block-finish",
+  index: uint,
+  content: FinalizedContentBlock,
+  Extensible,
+}
+
+; Emitted once when the message is complete.
+MessageFinishData = {
+  event: "message-finish",
+  ? usage: UsageInfo,                    ; Token usage for AI-authored messages
+  Extensible,
+}
+
+UsageInfo = {
+  ? inputTokens: uint,
+  ? outputTokens: uint,
+  ? totalTokens: uint,
+  Extensible,
+}
+
+; Emitted on unrecoverable errors within a model call.
+MessageErrorData = {
+  event: "error",
+  message: text,
+  ? code: text,
+  Extensible,
+}
+
+
+; ==========================================================================
+; 9. Tools Module
+;
+; Tool execution lifecycle observability. Events cover the full
+; lifecycle of a tool invocation:
+;
+;   tool-started(toolCallId, toolName)
+;     -> tool-output-delta(toolCallId, delta) ...  (optional, streaming tools)
+;   -> tool-finished(toolCallId, output)
+;      | tool-error(toolCallId, message)
+; ==========================================================================
+
+ToolsEvent = {
+  method: "tools",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    ? node: text,                        ; Graph node executing the tool
+    data: ToolsData,
+  },
+}
+
+ToolsData = ToolStartedData
+          / ToolOutputDeltaData
+          / ToolFinishedData
+          / ToolErrorData
+
+; Emitted when tool execution begins.
+ToolStartedData = {
+  event: "tool-started",
+  toolCallId: text,
+  toolName: text,
+  ? input: any,                          ; Tool input arguments
+  Extensible,
+}
+
+; Emitted for incremental tool output (for tools that stream results).
+ToolOutputDeltaData = {
+  event: "tool-output-delta",
+  toolCallId: text,
+  delta: text,
+  Extensible,
+}
+
+; Emitted when tool execution completes successfully.
+ToolFinishedData = {
+  event: "tool-finished",
+  toolCallId: text,
+  output: any,
+  Extensible,
+}
+
+; Emitted when tool execution fails.
+ToolErrorData = {
+  event: "tool-error",
+  toolCallId: text,
+  message: text,
+  ? code: text,
+  Extensible,
+}
+
+
+; ==========================================================================
+; 10. Input Module
+;
+; Human-in-the-loop. Wraps LangGraph's interrupt() / Command({ resume })
+; as in-band protocol messages. Also supports unsolicited user input
+; injection while the agent is running.
+; ==========================================================================
+
+InputCommand = (
+  input.respond //
+  input.inject
+)
+
+; --- input.respond ---
+
+input.respond = {
+  method: "input.respond",
+  params: InputRespondParams,
+}
+
+InputRespondParams = {
+  namespace: Namespace,
+  interruptId: text,
+  response: any,
+}
+
+; --- input.inject ---
+
+input.inject = {
+  method: "input.inject",
+  params: InputInjectParams,
+}
+
+InputInjectParams = {
+  namespace: Namespace,
+  message: InputMessage,
+}
+
+InputMessage = {
+  role: "user" / "system",
+  content: text,
+  ? name: text,
+  Extensible,
+}
+
+InputResult = EmptyResult
+
+; --- Input events (server -> client, channel: "input") ---
+
+InputEvent = {
+  method: "input.requested",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: InputRequestedData,
+  },
+}
+
+InputRequestedData = {
+  interruptId: text,                      ; Correlates this request with input.respond
+  payload: any,                           ; Opaque interrupt value from runtime; application-defined shape
+  Extensible,
+}
+
+
+; ==========================================================================
+; 11. State Module
+;
+; Graph state and checkpoint access. Enables state inspection and
+; time-travel debugging (fork from checkpoint).
+;
+; Note: Cross-thread store operations (search, put) are accessed via
+; the LangGraph REST API and are not part of the streaming protocol.
+; ==========================================================================
+
+StateCommand = (
+  state.get //
+  state.listCheckpoints //
+  state.fork
+)
+
+; --- state.get ---
+
+state.get = {
+  method: "state.get",
+  params: StateGetParams,
+}
+
+StateGetParams = {
+  namespace: Namespace,
+  ? keys: [* text],                      ; Specific state keys, or omit for all
+}
+
+StateGetResult = {
+  values: {* text => any},
+  ? checkpoint: CheckpointRef,
+}
+
+; --- state.listCheckpoints ---
+
+state.listCheckpoints = {
+  method: "state.listCheckpoints",
+  params: ListCheckpointsParams,
+}
+
+ListCheckpointsParams = {
+  ? namespace: Namespace,
+  ? limit: uint,
+  ? before: text,                        ; Cursor for pagination
+}
+
+ListCheckpointsResult = {
+  checkpoints: [* CheckpointSummary],
+}
+
+CheckpointSummary = {
+  id: text,
+  timestamp: text,                       ; ISO 8601
+  step: uint,
+  ? nodeName: text,                      ; Node that produced this checkpoint
+  ? metadata: {* text => any},
+}
+
+CheckpointRef = {
+  id: text,
+  ? ns: text,
+}
+
+; --- state.fork ---
+
+state.fork = {
+  method: "state.fork",
+  params: StateForkParams,
+}
+
+StateForkParams = {
+  checkpointId: text,
+  ? input: any,                          ; Input for the forked run
+  ? config: {* text => any},             ; Config overrides
+}
+
+StateForkResult = {
+  runId: text,
+  threadId: text,
+}
+
+StateResult = StateGetResult
+            / ListCheckpointsResult / StateForkResult / EmptyResult
+
+
+; ==========================================================================
+; 12. Passthrough Channels
+;
+; These channels carry payloads shaped by the LangGraph runtime and
+; user graph schemas. Their data shapes are intentionally open
+; because they depend on the user's graph state definition.
+;
+; The `values` channel doubles as the "values snapshot" mechanism:
+; when a subscription is created, the first event replayed is the
+; current full state, giving consumers a consistent baseline to
+; apply subsequent deltas against.
+;
+; The `checkpoints` channel carries a lightweight envelope (id,
+; parentId, step, source) emitted once per persisted checkpoint.
+; Clients reconstruct a branching/time-travel history from this
+; metadata alone — the envelope provides the fork target (`id`),
+; tree linkage (`parentId`), and timeline sort/label (`step`,
+; `source`). Full channel state is retrieved lazily via `state.get`
+; or bulk via `state.listCheckpoints`, only for the checkpoints the
+; client actually inspects. Clients that want state snapshots
+; alongside the timeline subscribe to both `values` and
+; `checkpoints`; clients that only need timeline metadata pay only
+; the envelope cost.
+; ==========================================================================
+
+; --- values (channel: "values") ---
+; Full graph state after each step or initial snapshot.
+ValuesEvent = {
+  method: "values",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: any,                           ; Full graph state after step
+  },
+}
+
+; --- checkpoints (channel: "checkpoints") ---
+; Lightweight checkpoint metadata emitted once per persisted
+; checkpoint. Carries only the envelope needed to build a
+; branching/time-travel UI and to target `state.fork`; full
+; channel state is retrieved on demand via `state.get` /
+; `state.listCheckpoints`.
+;
+; A `checkpoints` event is emitted on the same superstep as the
+; corresponding `values` event; clients that subscribe to both can
+; correlate the pair by (namespace, step) or by adjacent `seq`
+; numbers on the outer event envelope.
+CheckpointsEvent = {
+  method: "checkpoints",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: Checkpoint,
+  },
+}
+
+; Lightweight checkpoint envelope. Supplies just enough metadata
+; for clients to build a branching/time-travel UI without streaming
+; full channel snapshots.
+Checkpoint = {
+  id: text,                              ; Fork target: pass to state.fork / configurable.checkpoint_id
+  ? parentId: text,                      ; Parent checkpoint id for tree linkage
+  step: int,                             ; Superstep number (-1 for first input, 0 for first loop step, ...)
+  source: CheckpointSource,              ; Origin of the checkpoint
+  Extensible,
+}
+
+; Origin tag matching LangGraph's CheckpointMetadata.source.
+CheckpointSource = "input"               ; Created from invoke/stream/batch input
+                 / "loop"                ; Created inside the pregel loop
+                 / "update"              ; Created from a manual state update
+                 / "fork"                ; Created as a copy of another checkpoint
+
+; --- updates (channel: "updates") ---
+; Per-node state deltas.
+UpdatesEvent = {
+  method: "updates",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: UpdatesData,
+  },
+}
+
+UpdatesData = {
+  ? node: text,                          ; Graph node that produced this update
+  values: {* text => any},              ; State delta
+  Extensible,
+}
+
+; --- custom (channel: "custom") ---
+; User-defined payloads emitted via config.writer / getWriter().
+CustomEvent = {
+  method: "custom",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: CustomData,
+  },
+}
+
+CustomData = {
+  ? name: text,                          ; Custom event name for dispatch
+  payload: any,                          ; User-defined payload
+  Extensible,
+}
+
+; --- tasks (channel: "tasks") ---
+; Pregel task creation or result events from the graph runtime.
+TasksEvent = {
+  method: "tasks",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: any,                           ; Task creation or result
+  },
+}

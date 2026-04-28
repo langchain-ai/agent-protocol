@@ -22,6 +22,10 @@
       "description": "Background runs are runs that do not run synchronously during the request that created them. They can be managed, cancelled, streamed and waited with these endpoints."
     },
     {
+      "name": "Streaming",
+      "description": "Thread-scoped streaming endpoints for filtered event streams, command delivery, and WebSocket transport."
+    },
+    {
       "name": "Store",
       "description": "Store is an API for managing persistent key-value store (long-term memory) that is available from any thread."
     }
@@ -1094,6 +1098,181 @@
         }
       }
     },
+    "/threads/{thread_id}/stream": {
+      "post": {
+        "tags": ["Streaming"],
+        "summary": "Open Thread SSE Stream",
+        "description": "Open a connection-scoped Server-Sent Events stream for a thread. The request body selects channels, namespace prefixes, optional namespace depth, and an optional sequence number to replay buffered events after. Closing the HTTP connection unsubscribes from this stream.",
+        "operationId": "open_thread_sse_stream",
+        "parameters": [
+          {
+            "description": "The ID of the thread whose events should be streamed.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id",
+              "description": "The ID of the thread whose events should be streamed."
+            },
+            "name": "thread_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventStreamRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "A filtered stream of protocol events in SSE format.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "The server sends streaming protocol events as Server-Sent Events. Each event payload is a StreamingEvent JSON object."
+                },
+                "example": "id: evt_123\nevent: messages\ndata: {\"type\":\"event\",\"eventId\":\"evt_123\",\"seq\":43,\"method\":\"messages\",\"params\":{\"namespace\":[],\"timestamp\":1710000000000,\"data\":{\"event\":\"message-start\",\"role\":\"ai\",\"id\":\"msg_123\"}}}\n\n"
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Streaming"],
+        "summary": "Open Thread WebSocket Stream",
+        "description": "Upgrade to a WebSocket connection for a thread. After the connection is upgraded, clients send streaming protocol commands in-band and receive command responses plus unsolicited events on the same connection. Use `subscription.subscribe`, `subscription.unsubscribe`, and `subscription.reconnect` to manage event filters on the WebSocket.",
+        "operationId": "open_thread_websocket_stream",
+        "parameters": [
+          {
+            "description": "The ID of the thread to open over WebSocket.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id",
+              "description": "The ID of the thread to open over WebSocket."
+            },
+            "name": "thread_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols. The connection is upgraded to WebSocket and uses the streaming protocol message framing."
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/threads/{thread_id}/commands": {
+      "post": {
+        "tags": ["Streaming"],
+        "summary": "Send Thread Streaming Command",
+        "description": "Send a streaming protocol command to a thread over HTTP. This endpoint is the request/response companion to the SSE event stream and supports commands such as `run.input`, `input.respond`, `input.inject`, `state.get`, `state.listCheckpoints`, and `state.fork`.",
+        "operationId": "send_thread_streaming_command",
+        "parameters": [
+          {
+            "description": "The ID of the thread that should receive the command.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id",
+              "description": "The ID of the thread that should receive the command."
+            },
+            "name": "thread_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamingCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Command response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamingCommandResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/store/items": {
       "put": {
         "tags": ["Store"],
@@ -1392,6 +1571,211 @@
         "required": ["agent_id", "input_schema", "output_schema"],
         "title": "AgentSchema",
         "description": "Defines the structure and properties of an agent."
+      },
+      "StreamingChannel": {
+        "anyOf": [
+          {
+            "type": "string",
+            "enum": [
+              "values",
+              "updates",
+              "messages",
+              "tools",
+              "lifecycle",
+              "input",
+              "checkpoints",
+              "tasks",
+              "custom"
+            ]
+          },
+          {
+            "type": "string",
+            "pattern": "^custom:.+"
+          }
+        ],
+        "title": "StreamingChannel",
+        "description": "A subscribable streaming channel. Namespaced custom channels use the `custom:*` form."
+      },
+      "StreamingNamespace": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "title": "StreamingNamespace",
+        "description": "Hierarchical path identifying a position in the agent tree. The empty array identifies the root agent."
+      },
+      "EventStreamRequest": {
+        "type": "object",
+        "required": ["channels"],
+        "properties": {
+          "channels": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/StreamingChannel"
+            },
+            "description": "Channels to include in this event stream."
+          },
+          "namespaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StreamingNamespace"
+            },
+            "description": "Namespace prefixes to include. Omit to receive matching events from all namespaces."
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum depth below each namespace prefix."
+          },
+          "since": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Replay buffered matching events after this monotonic sequence number, then switch to live delivery."
+          }
+        },
+        "additionalProperties": true,
+        "title": "EventStreamRequest",
+        "description": "Request body for a connection-scoped SSE event stream."
+      },
+      "StreamingCommand": {
+        "type": "object",
+        "required": ["id", "method"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Client-assigned command ID used to correlate the command response."
+          },
+          "method": {
+            "type": "string",
+            "description": "Streaming protocol command method, such as `run.input`, `subscription.subscribe`, `input.respond`, or `state.get`."
+          },
+          "params": {
+            "type": "object",
+            "description": "Command parameters. Shape depends on the command method.",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "title": "StreamingCommand",
+        "description": "Client-to-server command in the streaming protocol."
+      },
+      "StreamingSuccessResponse": {
+        "type": "object",
+        "required": ["type", "id", "result"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "success"
+          },
+          "id": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "ID of the command this response belongs to."
+          },
+          "result": {
+            "type": "object",
+            "description": "Command result. Shape depends on the command method.",
+            "additionalProperties": true
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "appliedThroughSeq": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Latest event sequence number applied before this response."
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "title": "StreamingSuccessResponse"
+      },
+      "StreamingErrorResponse": {
+        "type": "object",
+        "required": ["type", "id", "error", "message"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "error"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ID of the command this response belongs to, or null if the command could not be correlated."
+          },
+          "error": {
+            "type": "string",
+            "description": "Streaming protocol error code."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error message."
+          },
+          "stacktrace": {
+            "type": "string",
+            "description": "Optional stack trace for debugging."
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "title": "StreamingErrorResponse"
+      },
+      "StreamingCommandResponse": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/StreamingSuccessResponse"
+          },
+          {
+            "$ref": "#/components/schemas/StreamingErrorResponse"
+          }
+        ],
+        "title": "StreamingCommandResponse",
+        "description": "Server response to a streaming protocol command."
+      },
+      "StreamingEvent": {
+        "type": "object",
+        "required": ["type", "method", "params"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
+          "eventId": {
+            "type": "string",
+            "description": "Unique event ID used for reconnection. Maps to the SSE `id:` field."
+          },
+          "seq": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Monotonic sequence number for ordering and replay."
+          },
+          "method": {
+            "type": "string",
+            "description": "Event method. Most events use the channel name, while some event families use a more specific method such as `input.requested`."
+          },
+          "params": {
+            "type": "object",
+            "description": "Event parameters, including namespace, timestamp, and channel-specific data.",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true,
+        "title": "StreamingEvent",
+        "description": "Server-to-client event in the streaming protocol."
       },
       "RunStatus": {
         "type": "string",
