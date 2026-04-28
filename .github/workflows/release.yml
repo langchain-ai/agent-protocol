@@ -18,7 +18,7 @@ env:
 
 defaults:
   run:
-    working-directory: py
+    working-directory: streaming/py
 
 jobs:
   build:
@@ -43,7 +43,7 @@ jobs:
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: dist
-          path: py/dist/
+          path: streaming/py/dist/
 
       - name: Read version
         id: check-version
@@ -93,12 +93,12 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: dist
-          path: py/dist/
+          path: streaming/py/dist/
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
         with:
-          packages-dir: py/dist/
+          packages-dir: streaming/py/dist/
           verbose: true
           print-hash: true
           attestations: false
@@ -118,12 +118,12 @@ jobs:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: dist
-          path: py/dist/
+          path: streaming/py/dist/
 
       - name: Create Release
         uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1
         with:
-          artifacts: "py/dist/*"
+          artifacts: "streaming/py/dist/*"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           generateReleaseNotes: true
