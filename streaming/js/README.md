@@ -10,14 +10,13 @@ results, and content blocks consistently.
 
 - Generated TypeScript protocol bindings in `protocol.ts`
 - Types for top-level messages such as `Command`, `Message`, and protocol events
-- Types for protocol modules including session, subscription, resource,
-  sandbox, input, state, and usage
+- Types for protocol modules including run, subscription, agent, input, state,
+  and usage
 
 ## What this package does not include
 
-This package does not currently ship a runtime client, transport, or helper APIs
-such as `createSession()`. It is intended for typing protocol payloads and
-generated bindings only.
+This package does not currently ship a runtime client, transport, or helper APIs.
+It is intended for typing protocol payloads and generated bindings only.
 
 ## Installation
 
@@ -33,7 +32,6 @@ Use type-only imports when consuming the protocol schema:
 import type {
   Command,
   Message,
-  SessionOpenParams,
   SubscribeParams,
   MessagesEvent,
 } from "@langchain/protocol";
@@ -43,25 +41,20 @@ You can then use the exported types to model protocol payloads in your own
 transport or client implementation:
 
 ```ts
-import type { Command, SessionOpenParams } from "@langchain/protocol";
+import type { Command, SubscribeParams } from "@langchain/protocol";
 
-const params: SessionOpenParams = {
-  protocolVersion: "0.3.0",
+const params: SubscribeParams = {
+  channels: ["messages", "lifecycle"],
 };
 
-const openCommand: Command = {
+const subscribeCommand: Command = {
   id: 1,
-  method: "session.open",
+  method: "subscription.subscribe",
   params,
 };
 ```
 
-## Versioning
-
-The package version is aligned with the draft streaming protocol schema version.
-The current generated bindings target protocol `0.5.0`.
-
 ## Source of truth
 
-The canonical protocol definition lives at `../protocol.cddl`. The TypeScript
+The canonical protocol definition lives at [`protocol.cddl`]([https://](https://github.com/langchain-ai/agent-protocol/blob/main/streaming/protocol.cddl)). The TypeScript
 bindings in this package are generated from that schema.
