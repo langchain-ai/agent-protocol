@@ -1,5 +1,5 @@
-name: release
-run-name: Release langchain-protocol by @${{ github.actor }}
+name: release streaming protocol
+run-name: Release streaming-protocol by @${{ github.actor }}
 
 on:
   workflow_dispatch:
