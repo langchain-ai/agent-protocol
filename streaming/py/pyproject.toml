@@ -23,3 +23,8 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = ["typing-extensions>=4.7.0,<5.0.0"]
+
+[project.urls]
+Homepage = "https://github.com/langchain-ai/agent-protocol/tree/main/streaming"
+Repository = "https://github.com/langchain-ai/agent-protocol"
+Issues = "https://github.com/langchain-ai/agent-protocol/issues"
