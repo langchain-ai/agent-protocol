@@ -289,10 +289,10 @@ export type ErrorCode = "invalid_argument" | "unknown_command" | "unknown_error"
 // not already exist.
 // Transport endpoints:
 // **SSE/HTTP:**
-// POST /v2/threads/:thread_id/events   — filtered SSE event stream
-// POST /v2/threads/:thread_id/commands  — JSON command request/response
+// POST /threads/:thread_id/stream   — filtered SSE event stream
+// POST /threads/:thread_id/commands  — JSON command request/response
 // **WebSocket:**
-// ws://.../v2/threads/:thread_id        — full-duplex connection
+// ws://.../threads/:thread_id/stream — full-duplex connection
 // Subscription model varies by transport:
 // **SSE/HTTP:** Subscriptions are connection-scoped. Each
 // `POST .../events` request carries its own filter (channels, namespaces,
@@ -372,7 +372,7 @@ export interface RunResult {
 // 6. Subscription & Event Streaming
 // The protocol supports two subscription models depending on transport:
 // **SSE/HTTP transport (connection-scoped subscriptions):**
-// Clients open one or more `POST /v2/threads/:thread_id/events` requests,
+// Clients open one or more `POST /threads/:thread_id/stream` requests,
 // each carrying an `EventStreamRequest` body with the desired channel
 // and namespace filters. The server responds with an SSE stream
 // filtered to match. Each connection IS the subscription — closing
@@ -396,7 +396,7 @@ export interface RunResult {
 // purpose.
 // ==========================================================================
 // --- Event stream request (SSE/HTTP transport only) ---
-// Sent as the JSON body of `POST /v2/threads/:thread_id/events`.
+// Sent as the JSON body of `POST /threads/:thread_id/stream`.
 // The server responds with `Content-Type: text/event-stream`.
 export type Channel = "values" | "updates" | "messages" | "tools" | "lifecycle" | "input" | "checkpoints" | "tasks" | "custom" | `custom:${string}`;
 

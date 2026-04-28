@@ -130,6 +130,12 @@ Agent Protocol also defines a thread-centric streaming protocol for observing an
 
 The streaming schema and generated bindings live in [`streaming/`](./streaming/). The CDDL schema is the source of truth, with generated TypeScript and Python bindings available for clients and implementations that want strongly typed protocol payloads.
 
+Streaming endpoints:
+
+- `POST /threads/{thread_id}/stream` opens a filtered Server-Sent Events stream for a thread. The request body selects channels, namespace prefixes, optional depth, and optional replay position.
+- `GET /threads/{thread_id}/stream` upgrades to a WebSocket connection for bidirectional streaming. Once upgraded, commands, command responses, and unsolicited events share the same connection.
+- `POST /threads/{thread_id}/commands` sends a streaming protocol command over HTTP and returns the correlated command response.
+
 ## Agent Protocol in Action
 
 Below are a few illustrative “user journeys” in [Hurl](https://hurl.dev) format, each showing a common sequence of API calls against your Agent Protocol service (listening at localhost:8000, no auth required).

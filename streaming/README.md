@@ -42,8 +42,8 @@ WebSocket, and in-process transports.
 
 SSE uses connection-scoped subscriptions:
 
-- `POST /v2/threads/:thread_id/events` opens a filtered event stream.
-- `POST /v2/threads/:thread_id/commands` sends a JSON command and receives a
+- `POST /threads/:thread_id/stream` opens a filtered event stream.
+- `POST /threads/:thread_id/commands` sends a JSON command and receives a
   JSON response.
 
 The `events` request body is an `EventStreamRequest`:
@@ -66,12 +66,18 @@ checkpoint updates.
 
 WebSocket uses in-band commands over a single full-duplex connection:
 
+- `GET /threads/:thread_id/stream` upgrades to the thread WebSocket.
 - `subscription.subscribe` creates a filtered subscription.
 - `subscription.unsubscribe` removes a subscription.
 - `subscription.reconnect` restores subscriptions and requests missed events.
 
 Subscriptions persist across run boundaries and are removed explicitly or when
 the WebSocket closes.
+
+Once the upgrade succeeds, the WebSocket uses the same top-level message framing
+described below. Clients send `Command` objects, and servers send
+`CommandResponse`, `ErrorResponse`, and unsolicited `Event` objects on the same
+connection.
 
 ## Top-Level Framing
 
