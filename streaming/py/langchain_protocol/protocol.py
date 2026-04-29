@@ -153,6 +153,28 @@ class NonStandardAnnotation(TypedDict):
 
 Annotation = Union[Citation, NonStandardAnnotation]
 
+class TextDelta(TypedDict):
+    type: Literal["text-delta"]
+    text: str
+
+class ReasoningDelta(TypedDict):
+    type: Literal["reasoning-delta"]
+    reasoning: str
+
+class DataDelta(TypedDict):
+    type: Literal["data-delta"]
+    data: str  # Encoded data chunk to append
+    encoding: NotRequired[Literal["base64"]]  # Defaults to base64 when absent
+
+class BlockDeltaFields(TypedDict, extra_items=Any):
+    type: str
+
+class BlockDelta(TypedDict):
+    type: Literal["block-delta"]
+    fields: BlockDeltaFields
+
+ContentBlockDelta = Union[TextDelta, ReasoningDelta, DataDelta, BlockDelta]
+
 class RunInput(TypedDict):
     method: Literal["run.input"]
     params: RunInputParams
@@ -442,7 +464,7 @@ class ContentBlockStartData(TypedDict):
 class ContentBlockDeltaData(TypedDict):
     event: Literal["content-block-delta"]
     index: int
-    content: ContentBlock
+    delta: ContentBlockDelta
 
 class ContentBlockFinishData(TypedDict):
     event: Literal["content-block-finish"]
