@@ -11,7 +11,8 @@
 // event filtering, hierarchical namespace scoping, and multi-transport
 // support (WebSocket, SSE, in-process).
 // The result is a single protocol where:
-// - Content blocks are the universal delta carrier for LLM streaming
+// - Content blocks are the universal carrier for LLM output
+// - Content block deltas have explicit append/merge semantics
 // - Events have full lifecycle semantics (no inferred boundaries)
 // - Namespace-based filtering provides server-side routing
 // - Threads are the primary routing key across all transports
@@ -48,10 +49,10 @@ export type MessageRole = "ai" | "human" | "system";
 
 // ==========================================================================
 // 2. Content Block Types
-// LangChain content blocks are the universal carrier for streaming
-// deltas. The block's `type` field is the discriminant. New content
-// block types automatically work with the streaming protocol without
-// protocol changes.
+// LangChain content blocks are the universal carrier for model output.
+// The block's `type` field is the discriminant. New content block
+// types automatically work with the streaming protocol without protocol
+// changes by using BlockDelta for incremental field updates.
 // "Chunk" variants (ToolCallChunk, ServerToolCallChunk) carry
 // partial/incremental data during streaming. "Standard" variants carry
 // finalized data. ContentBlockFinish events upgrade chunks to their
@@ -221,6 +222,55 @@ export type FileContentBlock = Extensible & {
   index?: BlockIndex;
 };
 
+// Explicit incremental updates for content blocks.
+// TextDelta, ReasoningDelta, and DataDelta append to their named fields.
+// BlockDelta shallow-merges `fields` onto the accumulated content block.
+// Producers should use DataDelta for streamed base64 chunks in image,
+// audio, video, or file blocks. Use BlockDelta for tool-call argument
+// streaming, provider signatures, citations, compaction markers, and
+// future block fields without dedicated append semantics.
+export type NonStandardContentBlock = Extensible & {
+  type: "non_standard";
+  value: Record<string, any>;
+  id?: string;
+  index?: BlockIndex;
+};
+
+export type TextDelta = Extensible & {
+  type: "text-delta";
+  text: string;
+};
+
+export type ReasoningDelta = Extensible & {
+  type: "reasoning-delta";
+  reasoning: string;
+};
+
+// One-layer patch for the currently active content block.
+// `type` identifies the content block type whose fields are being
+// updated; all other keys are shallow-merged onto the accumulated block.
+export type DataDelta = Extensible & {
+  type: "data-delta";
+  /**
+   * Encoded data chunk to append
+   */
+  data: string;
+  /**
+   * Defaults to base64 when absent
+   */
+  encoding?: "base64";
+};
+
+export interface BlockDeltaFields {
+  type: string;
+  [key: string]: any | undefined;
+}
+
+export type BlockDelta = Extensible & {
+  type: "block-delta";
+  fields: BlockDeltaFields;
+};
+
 // ==========================================================================
 // 3. Top-Level Message Framing
 // Three message types flow over the connection:
@@ -230,12 +280,7 @@ export type FileContentBlock = Extensible & {
 // Event           — server -> client (unsolicited push)
 // ==========================================================================
 // --- Client -> Server ---
-export type NonStandardContentBlock = Extensible & {
-  type: "non_standard";
-  value: Record<string, any>;
-  id?: string;
-  index?: BlockIndex;
-};
+export type ContentBlockDelta = TextDelta | ReasoningDelta | DataDelta | BlockDelta;
 
 export type Command = CommandData & Extensible & {
   id: JsUint;
@@ -617,19 +662,21 @@ export interface LifecycleCauseEdge {
 // as complete messages. Events follow a strict lifecycle:
 // message-start
 // -> content-block-start(index=0, contentBlock)
-// -> content-block-delta(index=0, contentBlock) ...
+// -> content-block-delta(index=0, delta) ...
 // -> content-block-finish(index=0, contentBlock)
 // -> content-block-start(index=1, contentBlock)
-// -> content-block-delta(index=1, contentBlock) ...
+// -> content-block-delta(index=1, delta) ...
 // -> content-block-finish(index=1, contentBlock)
 // -> message-finish(reason)
 // Content blocks MUST NOT interleave: block N must finish before block
 // N+1 starts. This constraint applies within a single message
 // (identified by namespace + node) and matches observed behavior of
 // all major LLM providers.
-// Delta events carry LangChain ContentBlock instances directly —
-// the block's `type` field is the discriminant. This means adding
-// a new content block type to LangChain requires zero protocol changes.
+// Delta events carry explicit delta variants:
+// - text-delta appends to the active block's `text` field
+// - reasoning-delta appends to the active block's `reasoning` field
+// - data-delta appends to the active block's `base64` field
+// - block-delta shallow-merges `fields` onto the active block
 // ==========================================================================
 export interface LifecycleData {
   event: AgentStatus;
@@ -680,11 +727,12 @@ export type MessageStartData = Extensible & {
   metadata?: MessageMetadata;
 };
 
-// Emitted for each incremental update within a content block. The
-// contentBlock carries only the delta for this update:
-// { type: "text", text: "Hello " }           — text delta
-// { type: "reasoning", reasoning: "Let me" } — reasoning delta
-// { type: "tool_call_chunk", args: '{"q":' } — tool call args delta
+// Emitted for each incremental update within a content block:
+// { type: "text-delta", text: "Hello " }                 — append text
+// { type: "reasoning-delta", reasoning: "Let me" }       — append reasoning
+// { type: "data-delta", data: "UklGR..." }               — append base64 data
+// { type: "block-delta", fields: { type: "tool_call_chunk", args: '{"q":' } }
+// — shallow merge fields
 export type ContentBlockStartData = Extensible & {
   event: "content-block-start";
   /**
@@ -700,7 +748,7 @@ export type ContentBlockStartData = Extensible & {
 export type ContentBlockDeltaData = Extensible & {
   event: "content-block-delta";
   index: number;
-  content: ContentBlock;
+  delta: ContentBlockDelta;
 };
 
 // Emitted once when the message is complete.

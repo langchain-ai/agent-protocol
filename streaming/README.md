@@ -25,9 +25,10 @@ The protocol is built around a few stable primitives:
   to the data they need.
 - Namespaces identify positions in an agent or graph tree, allowing clients to
   subscribe to a root agent, a subgraph, or a bounded depth below either.
-- Content blocks are the universal carrier for model output deltas, including
-  text, reasoning, tool calls, server-side tool calls, multimodal data, and
-  provider-specific extensions.
+- Content blocks are the universal carrier for model output, including text,
+  reasoning, tool calls, server-side tool calls, multimodal data, and
+  provider-specific extensions. Content block deltas use explicit append/merge
+  semantics.
 - Events carry explicit lifecycle boundaries. Clients do not need to infer when
   a message, content block, tool call, run, or subgraph starts and finishes.
 - Replay is sequence-based, allowing clients to reconnect and request missed
@@ -204,16 +205,32 @@ Content blocks do not interleave within a single message. Block `N` finishes
 before block `N + 1` starts. This matches common LLM provider streaming behavior
 and keeps client assembly deterministic.
 
-Delta events carry the same content block union as finalized content. The
-block's `type` field is the discriminant. For example:
+Delta events carry explicit delta variants. `text-delta` appends to the active
+block's `text` field, `reasoning-delta` appends to `reasoning`, `data-delta`
+appends encoded data chunks to `base64`, and `block-delta` shallow-merges
+fields onto the active block. For example:
 
 ```json
 {
   "event": "content-block-delta",
   "index": 0,
-  "content": {
-    "type": "text",
+  "delta": {
+    "type": "text-delta",
     "text": "Hello "
+  }
+}
+```
+
+Multimodal data streams use `data-delta` for encoded chunks:
+
+```json
+{
+  "event": "content-block-delta",
+  "index": 1,
+  "delta": {
+    "type": "data-delta",
+    "data": "UklGR...",
+    "encoding": "base64"
   }
 }
 ```
@@ -224,11 +241,14 @@ Tool call arguments stream as chunk content and finalize as parsed tool calls:
 {
   "event": "content-block-delta",
   "index": 1,
-  "content": {
-    "type": "tool_call_chunk",
-    "id": "call_123",
-    "name": "search",
-    "args": "{\"query\":"
+  "delta": {
+    "type": "block-delta",
+    "fields": {
+      "type": "tool_call_chunk",
+      "id": "call_123",
+      "name": "search",
+      "args": "{\"query\":"
+    }
   }
 }
 ```
@@ -386,8 +406,10 @@ for forward compatibility. Consumers should ignore unknown fields and default
 unknown tagged variants to a safe fallback instead of failing closed.
 
 Content blocks are especially extensible. New block types can be added to
-LangChain content block definitions and flow through the same message lifecycle
-without changing the transport or channel model.
+LangChain content block definitions and flow through the same message lifecycle.
+During streaming, encoded data chunks can use `data-delta`, while block-specific
+incremental fields can use `block-delta` without changing the transport or
+channel model.
 
 ## Generated Bindings
 
