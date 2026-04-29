@@ -1,6 +1,6 @@
 {
   "name": "@langchain/protocol",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "TypeScript bindings for the LangChain agent streaming protocol",
   "license": "MIT",
   "keywords": [
