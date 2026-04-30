@@ -175,9 +175,9 @@ class BlockDelta(TypedDict):
 
 ContentBlockDelta = Union[TextDelta, ReasoningDelta, DataDelta, BlockDelta]
 
-class RunInput(TypedDict):
-    method: Literal["run.input"]
-    params: RunInputParams
+class RunStart(TypedDict):
+    method: Literal["run.start"]
+    params: RunStartParams
 
 class SubscriptionSubscribe(TypedDict):
     method: Literal["subscription.subscribe"]
@@ -370,12 +370,12 @@ ErrorCode = Union[Literal["invalid_argument"], Literal["unknown_command"], Liter
 class ResponseMeta(TypedDict):
     applied_through_seq: NotRequired[JsUint]
 
-RunCommand = RunInput
+RunCommand = RunStart
 
 class _CommandVariant0(_CommandFields, RunCommand):
     pass
 
-class RunInputParams(TypedDict):
+class RunStartParams(TypedDict):
     assistant_id: str  # Deployed graph/agent to run
     input: Any  # Graph input, resume value, or injected message
     config: NotRequired[dict[str, Any]]  # Per-run config overrides

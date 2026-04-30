@@ -405,7 +405,7 @@ ResponseMeta = {
 ; or server-side session state.
 ;
 ; Thread IDs may be client-generated (UUID) or server-assigned. The
-; server creates the thread lazily on the first `run.input` if it does
+; server creates the thread lazily on the first `run.start` if it does
 ; not already exist.
 ;
 ; Transport endpoints:
@@ -424,7 +424,7 @@ ResponseMeta = {
 ; depth) and the server streams matching events for the lifetime of that
 ; connection. Closing the connection unsubscribes. No subscription state
 ; is persisted on the server. Event streams can be opened before or after
-; `run.input`; streams opened before a run exists stay idle until events
+; `run.start`; streams opened before a run exists stay idle until events
 ; are produced.
 ;
 ; **WebSocket:** Subscriptions are managed via in-band
@@ -447,7 +447,7 @@ ResponseMeta = {
 ; ==========================================================================
 ; 4a. Run Module
 ;
-; `run.input` is the single entry point for all input to the graph.
+; `run.start` is the single entry point for all input to the graph.
 ; The thread manages a state machine:
 ;
 ;   - No active run  → starts a new run with the provided input
@@ -458,14 +458,14 @@ ResponseMeta = {
 ; run on this thread. It replaces session-level target binding.
 ; ==========================================================================
 
-RunCommand = run.input
+RunCommand = run.start
 
-run.input = {
-  method: "run.input",
-  params: RunInputParams,
+run.start = {
+  method: "run.start",
+  params: RunStartParams,
 }
 
-RunInputParams = {
+RunStartParams = {
   assistantId: text,                     ; Deployed graph/agent to run
   input: any,                            ; Graph input, resume value, or injected message
   ? config: {* text => any},             ; Per-run config overrides

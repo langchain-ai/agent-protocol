@@ -330,7 +330,7 @@ export type ErrorCode = "invalid_argument" | "unknown_command" | "unknown_error"
 // for commands, events, and subscriptions. There is no session handshake
 // or server-side session state.
 // Thread IDs may be client-generated (UUID) or server-assigned. The
-// server creates the thread lazily on the first `run.input` if it does
+// server creates the thread lazily on the first `run.start` if it does
 // not already exist.
 // Transport endpoints:
 // **SSE/HTTP:**
@@ -344,7 +344,7 @@ export type ErrorCode = "invalid_argument" | "unknown_command" | "unknown_error"
 // depth) and the server streams matching events for the lifetime of that
 // connection. Closing the connection unsubscribes. No subscription state
 // is persisted on the server. Event streams can be opened before or after
-// `run.input`; streams opened before a run exists stay idle until events
+// `run.start`; streams opened before a run exists stay idle until events
 // are produced.
 // **WebSocket:** Subscriptions are managed via in-band
 // `subscription.subscribe` and `subscription.unsubscribe` commands on
@@ -361,7 +361,7 @@ export type ErrorCode = "invalid_argument" | "unknown_command" | "unknown_error"
 // ==========================================================================
 // ==========================================================================
 // 4a. Run Module
-// `run.input` is the single entry point for all input to the graph.
+// `run.start` is the single entry point for all input to the graph.
 // The thread manages a state machine:
 // - No active run  → starts a new run with the provided input
 // - Run interrupted → resumes with the input as the resume value
@@ -373,14 +373,14 @@ export type ResponseMeta = Extensible & {
   applied_through_seq?: JsUint;
 };
 
-export type RunCommand = RunInput;
+export type RunCommand = RunStart;
 
-export interface RunInput {
-  method: "run.input";
-  params: RunInputParams;
+export interface RunStart {
+  method: "run.start";
+  params: RunStartParams;
 }
 
-export interface RunInputParams {
+export interface RunStartParams {
   /**
    * Deployed graph/agent to run
    */
