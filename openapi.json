@@ -1213,7 +1213,7 @@
       "post": {
         "tags": ["Streaming"],
         "summary": "Send Thread Streaming Command",
-        "description": "Send a streaming protocol command to a thread over HTTP. This endpoint is the request/response companion to the SSE event stream and supports commands such as `run.input`, `input.respond`, `input.inject`, `state.get`, `state.listCheckpoints`, and `state.fork`.",
+        "description": "Send a streaming protocol command to a thread over HTTP. This endpoint is the request/response companion to the SSE event stream and supports commands such as `run.start`, `input.respond`, `input.inject`, `state.get`, `state.listCheckpoints`, and `state.fork`.",
         "operationId": "send_thread_streaming_command",
         "parameters": [
           {
@@ -1649,7 +1649,7 @@
           },
           "method": {
             "type": "string",
-            "description": "Streaming protocol command method, such as `run.input`, `subscription.subscribe`, `input.respond`, or `state.get`."
+            "description": "Streaming protocol command method, such as `run.start`, `subscription.subscribe`, `input.respond`, or `state.get`."
           },
           "params": {
             "type": "object",

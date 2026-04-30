@@ -87,7 +87,7 @@ Client-to-server messages are commands:
 ```json
 {
   "id": 1,
-  "method": "run.input",
+  "method": "run.start",
   "params": {
     "assistantId": "agent",
     "input": {
@@ -154,10 +154,10 @@ ordering and replay.
 
 The protocol is thread-centric. A thread is the durable identity for state,
 checkpoints, run history, and stream routing. A server may create a thread
-lazily when it receives the first `run.input` command for a thread that does not
+lazily when it receives the first `run.start` command for a thread that does not
 exist yet.
 
-`run.input` is the main entry point for execution input:
+`run.start` is the main entry point for execution input:
 
 - If no run is active, it starts a new run.
 - If the run is interrupted, it resumes the run with the provided value.
