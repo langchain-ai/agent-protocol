@@ -845,13 +845,49 @@ export type ToolErrorData = Extensible & {
 // --- input.respond ---
 export type InputCommand = InputRespond | InputInject;
 
+// A respond command resolves either a single interrupt or several
+// interrupts that are pending at the same checkpoint (e.g. parallel
+// tool-authorization prompts). The batch form is required because
+// sequential single resumes cannot do this: the first resume starts a
+// run, leaving the remaining interrupts with no interrupted run to
+// respond to.
 export interface InputRespond {
   method: "input.respond";
   params: InputRespondParams;
 }
 
+// Single-interrupt resume.
+export type InputRespondParams = InputRespondOne | InputRespondMany;
+
+// Batch resume — one entry per interrupt, resumed in a single run.
+export interface InputRespondOne {
+  namespace: Namespace;
+  interrupt_id: string;
+  response: any;
+  /**
+   * Per-run config overrides
+   */
+  config?: Record<string, any>;
+  /**
+   * Per-run metadata
+   */
+  metadata?: Record<string, any>;
+}
+
+export interface InputRespondMany {
+  responses: InputRespondEntry[];
+  /**
+   * Per-run config overrides
+   */
+  config?: Record<string, any>;
+  /**
+   * Per-run metadata
+   */
+  metadata?: Record<string, any>;
+}
+
 // --- input.inject ---
-export interface InputRespondParams {
+export interface InputRespondEntry {
   namespace: Namespace;
   interrupt_id: string;
   response: any;
