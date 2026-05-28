@@ -511,7 +511,21 @@ class ToolErrorData(TypedDict):
 
 ToolsData = Union[ToolStartedData, ToolOutputDeltaData, ToolFinishedData, ToolErrorData]
 
-class InputRespondParams(TypedDict):
+class InputRespondOne(TypedDict):
+    namespace: Namespace
+    interrupt_id: str
+    response: Any
+    config: NotRequired[dict[str, Any]]  # Per-run config overrides
+    metadata: NotRequired[dict[str, Any]]  # Per-run metadata
+
+class InputRespondMany(TypedDict):
+    responses: list[InputRespondEntry]
+    config: NotRequired[dict[str, Any]]  # Per-run config overrides
+    metadata: NotRequired[dict[str, Any]]  # Per-run metadata
+
+InputRespondParams = Union[InputRespondOne, InputRespondMany]
+
+class InputRespondEntry(TypedDict):
     namespace: Namespace
     interrupt_id: str
     response: Any
