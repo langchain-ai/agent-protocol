@@ -105,6 +105,11 @@ class IfNotExists(Enum):
     reject = "reject"
 
 
+class OnCompletion1(Enum):
+    keep = "keep"
+    delete = "delete"
+
+
 class RunSearchRequest(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(
         None, description="Run metadata to filter on.", title="Metadata"
@@ -378,6 +383,52 @@ class RunCreate(BaseModel):
         "reject",
         description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
         title="If Not Exists",
+    )
+
+
+class RunResume(BaseModel):
+    thread_id: UUID = Field(
+        ...,
+        description="The ID of the thread to resume. Must refer to an existing thread.",
+        title="Thread Id",
+    )
+    agent_id: Optional[str] = Field(
+        None,
+        description="The agent ID to run. If not provided will use the agent associated with this thread (or the default agent for this service). 'agent_id' is ignored unless Agents stage is implemented.",
+        title="Agent Id",
+    )
+    input: Optional[Union[Dict[str, Any], List, str, float, bool]] = Field(
+        None, description="The input to the agent.", title="Input"
+    )
+    messages: Optional[List[Message]] = Field(
+        None,
+        description="The messages to pass an input to the agent.",
+        title="Messages",
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        None, description="Metadata to assign to the run.", title="Metadata"
+    )
+    config: Optional[Config] = Field(
+        None, description="The configuration for the agent.", title="Config"
+    )
+    webhook: Optional[AnyUrl] = Field(
+        None, description="Webhook to call after run finishes.", title="Webhook"
+    )
+    on_completion: Optional[OnCompletion1] = Field(
+        None,
+        description="Whether to delete or keep the thread when run completes. Must be one of 'delete' or 'keep'. Defaults to 'keep'.",
+        title="On Completion",
+    )
+    on_disconnect: Optional[OnDisconnect] = Field(
+        "cancel",
+        description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
+        title="On Disconnect",
+    )
+
+
+class RunResumeStream(RunResume):
+    stream_mode: Optional[Union[StreamMode, List[StreamMode]]] = Field(
+        "values", description="The stream mode(s) to use.", title="Stream Mode"
     )
 
 

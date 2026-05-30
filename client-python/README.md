@@ -97,6 +97,9 @@ Class | Method | HTTP request | Description
 *BackgroundRunsApi* | [**wait_run**](docs/BackgroundRunsApi.md#wait_run) | **GET** /runs/{run_id}/wait | Wait for Run output
 *RunsApi* | [**create_and_stream_run**](docs/RunsApi.md#create_and_stream_run) | **POST** /runs/stream | Create Run, Stream Output
 *RunsApi* | [**create_and_wait_run**](docs/RunsApi.md#create_and_wait_run) | **POST** /runs/wait | Create Run, Wait for Output
+*RunsApi* | [**resume_and_stream_run**](docs/RunsApi.md#resume_and_stream_run) | **PATCH** /runs/resume/stream | Resume Run and Stream Output
+*RunsApi* | [**resume_and_wait_run**](docs/RunsApi.md#resume_and_wait_run) | **PATCH** /runs/resume/wait | Resume Run and Wait
+*RunsApi* | [**resume_run**](docs/RunsApi.md#resume_run) | **PATCH** /runs/resume | Resume Run (start execution from interrupted thread)
 *StoreApi* | [**delete_item**](docs/StoreApi.md#delete_item) | **DELETE** /store/items | Delete Store Item
 *StoreApi* | [**get_item**](docs/StoreApi.md#get_item) | **GET** /store/items | Get Store Item
 *StoreApi* | [**list_namespaces**](docs/StoreApi.md#list_namespaces) | **POST** /store/namespaces | List namespaces
@@ -127,6 +130,8 @@ Class | Method | HTTP request | Description
  - [MessageTextBlock](docs/MessageTextBlock.md)
  - [Run](docs/Run.md)
  - [RunCreate](docs/RunCreate.md)
+ - [RunResume](docs/RunResume.md)
+ - [RunResumeStream](docs/RunResumeStream.md)
  - [RunSearchRequest](docs/RunSearchRequest.md)
  - [RunStatus](docs/RunStatus.md)
  - [RunStream](docs/RunStream.md)
@@ -138,6 +143,7 @@ Class | Method | HTTP request | Description
  - [StorePutRequest](docs/StorePutRequest.md)
  - [StoreSearchRequest](docs/StoreSearchRequest.md)
  - [StreamMode](docs/StreamMode.md)
+ - [StreamMode1](docs/StreamMode1.md)
  - [Thread](docs/Thread.md)
  - [ThreadCheckpoint](docs/ThreadCheckpoint.md)
  - [ThreadCreate](docs/ThreadCreate.md)
