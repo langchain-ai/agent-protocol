@@ -758,6 +758,8 @@ export type ContentBlockFinishData = Extensible & {
   content: FinalizedContentBlock;
 };
 
+// Breakdown of input token counts. Keys are optional and need not sum to
+// inputTokens; may also hold extra provider-specific keys.
 export type MessageFinishData = Extensible & {
   event: "message-finish";
   /**
@@ -766,11 +768,26 @@ export type MessageFinishData = Extensible & {
   usage?: UsageInfo;
 };
 
+// Breakdown of output token counts. Keys are optional and need not sum to
+// outputTokens; may also hold extra provider-specific keys.
+export type InputTokenDetails = Extensible & {
+  audio?: number;
+  cache_creation?: number;
+  cache_read?: number;
+};
+
+export type OutputTokenDetails = Extensible & {
+  audio?: number;
+  reasoning?: number;
+};
+
 // Emitted on unrecoverable errors within a model call.
 export type UsageInfo = Extensible & {
   input_tokens?: number;
   output_tokens?: number;
   total_tokens?: number;
+  input_token_details?: InputTokenDetails;
+  output_token_details?: OutputTokenDetails;
 };
 
 // ==========================================================================
