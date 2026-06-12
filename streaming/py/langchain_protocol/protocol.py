@@ -482,10 +482,21 @@ class MessageErrorData(TypedDict):
 
 MessagesData = Union[MessageStartData, ContentBlockStartData, ContentBlockDeltaData, ContentBlockFinishData, MessageFinishData, MessageErrorData]
 
+class InputTokenDetails(TypedDict):
+    audio: NotRequired[int]
+    cache_creation: NotRequired[int]
+    cache_read: NotRequired[int]
+
+class OutputTokenDetails(TypedDict):
+    audio: NotRequired[int]
+    reasoning: NotRequired[int]
+
 class UsageInfo(TypedDict):
     input_tokens: NotRequired[int]
     output_tokens: NotRequired[int]
     total_tokens: NotRequired[int]
+    input_token_details: NotRequired[InputTokenDetails]
+    output_token_details: NotRequired[OutputTokenDetails]
 
 class ToolStartedData(TypedDict):
     event: Literal["tool-started"]

@@ -858,10 +858,29 @@ MessageFinishData = {
   Extensible,
 }
 
+; Breakdown of input token counts. Keys are optional and need not sum to
+; inputTokens; may also hold extra provider-specific keys.
+InputTokenDetails = {
+  ? audio: uint,
+  ? cacheCreation: uint,
+  ? cacheRead: uint,
+  Extensible,
+}
+
+; Breakdown of output token counts. Keys are optional and need not sum to
+; outputTokens; may also hold extra provider-specific keys.
+OutputTokenDetails = {
+  ? audio: uint,
+  ? reasoning: uint,
+  Extensible,
+}
+
 UsageInfo = {
   ? inputTokens: uint,
   ? outputTokens: uint,
   ? totalTokens: uint,
+  ? inputTokenDetails: InputTokenDetails,
+  ? outputTokenDetails: OutputTokenDetails,
   Extensible,
 }
 
