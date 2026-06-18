@@ -983,11 +983,23 @@ input.respond = {
 ; respond to.
 InputRespondParams = InputRespondOne / InputRespondMany
 
+; A directed jump applied alongside a resume, mapped to LangGraph's
+; Command(goto=...). Either a target node name, a Send (a node plus the
+; per-send input handed to it), or a list mixing the two for fan-out.
+RunSend = {
+  node: text,                            ; Target graph node
+  ? input: any,                          ; Per-send input passed to the node
+}
+
+Goto = text / RunSend / [* (text / RunSend)]
+
 ; Single-interrupt resume.
 InputRespondOne = {
   namespace: Namespace,
   interruptId: text,
   response: any,
+  ? update: {* text => any},             ; State update applied in the same superstep as the resume (LangGraph Command(update=...))
+  ? goto: Goto,                          ; Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
   ? config: {* text => any},             ; Per-run config overrides
   ? metadata: {* text => any},           ; Per-run metadata
 }
@@ -995,6 +1007,8 @@ InputRespondOne = {
 ; Batch resume — one entry per interrupt, resumed in a single run.
 InputRespondMany = {
   responses: [+ InputRespondEntry],
+  ? update: {* text => any},             ; State update applied in the same superstep as the resume (LangGraph Command(update=...))
+  ? goto: Goto,                          ; Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
   ? config: {* text => any},             ; Per-run config overrides
   ? metadata: {* text => any},           ; Per-run metadata
 }

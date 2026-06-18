@@ -873,14 +873,37 @@ export interface InputRespond {
   params: InputRespondParams;
 }
 
-// Single-interrupt resume.
+// A directed jump applied alongside a resume, mapped to LangGraph's
+// Command(goto=...). Either a target node name, a Send (a node plus the
+// per-send input handed to it), or a list mixing the two for fan-out.
 export type InputRespondParams = InputRespondOne | InputRespondMany;
+
+export interface RunSend {
+  /**
+   * Target graph node
+   */
+  node: string;
+  /**
+   * Per-send input passed to the node
+   */
+  input?: any;
+}
+
+export type Goto = string | RunSend | (string | RunSend)[];
 
 // Batch resume — one entry per interrupt, resumed in a single run.
 export interface InputRespondOne {
   namespace: Namespace;
   interrupt_id: string;
   response: any;
+  /**
+   * State update applied in the same superstep as the resume (LangGraph Command(update=...))
+   */
+  update?: Record<string, any>;
+  /**
+   * Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
+   */
+  goto?: Goto;
   /**
    * Per-run config overrides
    */
@@ -893,6 +916,14 @@ export interface InputRespondOne {
 
 export interface InputRespondMany {
   responses: InputRespondEntry[];
+  /**
+   * State update applied in the same superstep as the resume (LangGraph Command(update=...))
+   */
+  update?: Record<string, any>;
+  /**
+   * Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
+   */
+  goto?: Goto;
   /**
    * Per-run config overrides
    */

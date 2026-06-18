@@ -526,15 +526,25 @@ class InputRespondOne(TypedDict):
     namespace: Namespace
     interrupt_id: str
     response: Any
+    update: NotRequired[dict[str, Any]]  # State update applied in the same superstep as the resume (LangGraph Command(update=...))
+    goto: NotRequired[Goto]  # Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
     config: NotRequired[dict[str, Any]]  # Per-run config overrides
     metadata: NotRequired[dict[str, Any]]  # Per-run metadata
 
 class InputRespondMany(TypedDict):
     responses: list[InputRespondEntry]
+    update: NotRequired[dict[str, Any]]  # State update applied in the same superstep as the resume (LangGraph Command(update=...))
+    goto: NotRequired[Goto]  # Directed jump applied in the same superstep as the resume (LangGraph Command(goto=...))
     config: NotRequired[dict[str, Any]]  # Per-run config overrides
     metadata: NotRequired[dict[str, Any]]  # Per-run metadata
 
 InputRespondParams = Union[InputRespondOne, InputRespondMany]
+
+class RunSend(TypedDict):
+    node: str  # Target graph node
+    input: NotRequired[Any]  # Per-send input passed to the node
+
+Goto = Union[str, RunSend, list[Union[str, RunSend]]]
 
 class InputRespondEntry(TypedDict):
     namespace: Namespace

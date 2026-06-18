@@ -312,6 +312,14 @@ The `input` channel carries human-in-the-loop requests. An `input.requested`
 event contains an `interruptId` and application-defined `payload`. Clients
 answer with `input.respond`, passing the same namespace and interrupt ID.
 
+`input.respond` may also carry optional `update` and `goto` fields. The server
+applies them as a LangGraph `Command(resume, update, goto)` in the same
+superstep as the resume, so the resumed run produces a single checkpoint that
+reflects the resume value, the state update, and the directed jump atomically.
+`update` lets a client push state (for example, an interrupt card message)
+alongside the resume without a separate state write; `goto` redirects the graph
+to a node name or `Send(node, input)` target as part of the same resume.
+
 ### `values`
 
 The `values` channel carries full graph state snapshots. When a subscription is
