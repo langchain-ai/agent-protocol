@@ -284,6 +284,9 @@ class Message(BaseModel):
         ..., description="The content of the message.", title="Content"
     )
     id: Optional[str] = Field(None, description="The ID of the message.", title="Id")
+    name: Optional[str] = Field(
+        None, description="The name of the message author or tool.", title="Name"
+    )
     metadata: Optional[Dict[str, Any]] = Field(
         None, description="The metadata of the message.", title="Metadata"
     )
