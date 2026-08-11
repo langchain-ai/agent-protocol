@@ -1,6 +1,10 @@
 version = 1
 revision = 3
 requires-python = ">=3.10, <4"
+resolution-markers = [
+    "python_full_version >= '3.14'",
+    "python_full_version < '3.14'",
+]
 
 [[package]]
 name = "annotated-types"
@@ -41,7 +45,7 @@ dependencies = [
 requires-dist = [
     { name = "autoflake", specifier = ">=2.3.1,<3.0.0" },
     { name = "click", specifier = ">=8.1,<8.2" },
-    { name = "fastapi-code-generator", specifier = ">=0.5.2,<0.6.0" },
+    { name = "fastapi-code-generator", specifier = ">=0.8.1,<0.9.0" },
     { name = "ruff", specifier = ">=0.9.4,<0.10.0" },
 ]
 
@@ -143,23 +147,22 @@ wheels = [
 
 [[package]]
 name = "datamodel-code-generator"
-version = "0.30.1"
+version = "0.65.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
-    { name = "black" },
+    { name = "black", marker = "sys_platform != 'emscripten'" },
     { name = "genson" },
     { name = "inflect" },
-    { name = "isort" },
+    { name = "isort", marker = "sys_platform != 'emscripten'" },
     { name = "jinja2" },
-    { name = "packaging" },
     { name = "pydantic" },
     { name = "pyyaml" },
-    { name = "tomli", marker = "python_full_version < '3.12'" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/bc/627a77eafcf7101c9f5710130b2def98593709a8d29676e4a58f09cd2a23/datamodel_code_generator-0.30.1.tar.gz", hash = "sha256:d125012face4cd1eca6c9300297a1f5775a9d5ff8fc3f68d34d0944a7beea105", size = 446630, upload-time = "2025-04-28T13:58:36.438Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/0e/5912b493a114591ebf66530fecda0f4a5e0e746ab7ea30f6da15de460e21/datamodel_code_generator-0.65.1.tar.gz", hash = "sha256:65471eaa32753d738f0e7ff8e0db3ac1fbc97ff64e393cd8df427eed77e86661", size = 1418449, upload-time = "2026-06-25T09:32:26.482Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/b3/01aab190372914399bbc77f89ac3b24b439c3d97a52a6198f1cd1396ef3a/datamodel_code_generator-0.30.1-py3-none-any.whl", hash = "sha256:9601dfa3da8aa8d8d54e182059f78836b1768a807d5c26df798db12d4054c8f3", size = 118045, upload-time = "2025-04-28T13:58:34.318Z" },
+    { url = "https://files.pythonhosted.org/packages/c7/30/c911d29d3ce3e1d3e3a4fa7dbf39b9bdef8135094dba320edb4e2b568fb5/datamodel_code_generator-0.65.1-py3-none-any.whl", hash = "sha256:ca1dd498c54679841cd0541a09edd5f2ee2021a455f225c61a38a166c0db5d22", size = 407906, upload-time = "2026-06-25T09:32:24.906Z" },
 ]
 
 [package.optional-dependencies]
@@ -172,7 +175,7 @@ name = "exceptiongroup"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0b/9f/a65090624ecf468cdca03533906e7c69ed7588582240cfe7cc9e770b50eb/exceptiongroup-1.3.0.tar.gz", hash = "sha256:b241f5885f560bc56a59ee63ca4c6a8bfa46ae4ad651af316d4e81817bb9fd88", size = 29749, upload-time = "2025-05-10T17:42:51.123Z" }
 wheels = [
@@ -181,19 +184,19 @@ wheels = [
 
 [[package]]
 name = "fastapi-code-generator"
-version = "0.5.4"
+version = "0.8.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "click" },
     { name = "datamodel-code-generator", extra = ["http"] },
     { name = "jinja2" },
     { name = "pydantic" },
     { name = "pysnooper" },
-    { name = "stringcase" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f9/c9/0b71c1b0f7ba292066c8cb8c368cdd163a42826c75749897784035547dab/fastapi_code_generator-0.5.4.tar.gz", hash = "sha256:9a66b02e4a1cf4d3899b5fc56db3962fcd7ae53f05412b124335b17c19b34492", size = 19093, upload-time = "2025-04-29T10:00:54.602Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/10/53b806d94ac0f392bd58cd79dacb2bec25b106601daf58cf6200f6005859/fastapi_code_generator-0.8.1.tar.gz", hash = "sha256:1090acac5b5c9ec7f523aa811af0b8e94ddd8392791ec6f6b64c76b976f849c6", size = 61433, upload-time = "2026-07-01T09:39:53.923Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/6e/5813ff5f565ccf8ee2b8720352a4c177e97bcdc01ff5ddaef53a8d448a83/fastapi_code_generator-0.5.4-py3-none-any.whl", hash = "sha256:721db5d2c9b78d5f1c7a3ce33b86a73390b97b0409768e387f6454abc96df2f1", size = 19171, upload-time = "2025-04-29T10:00:53.265Z" },
+    { url = "https://files.pythonhosted.org/packages/03/7f/ea112ec43f75289e9a2e5cf254718ba19cd127c34cf4ca5f423598778d1f/fastapi_code_generator-0.8.1-py3-none-any.whl", hash = "sha256:8182f85afc0d5d0b47fa2b7d7866e97c431a7e5323ac23434bb9669bc8b15e81", size = 30598, upload-time = "2026-07-01T09:39:52.428Z" },
 ]
 
 [[package]]
@@ -754,12 +757,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/a2/87/a6771e1546d97e7e0
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e9/44/75a9c9421471a6c4805dbf2356f7c181a29c1879239abab1ea2cc8f38b40/sniffio-1.3.1-py3-none-any.whl", hash = "sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2", size = 10235, upload-time = "2024-02-25T23:20:01.196Z" },
 ]
-
-[[package]]
-name = "stringcase"
-version = "1.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/1f/1241aa3d66e8dc1612427b17885f5fcd9c9ee3079fc0d28e9a3aeeb36fa3/stringcase-1.2.0.tar.gz", hash = "sha256:48a06980661908efe8d9d34eab2b6c13aefa2163b3ced26972902e3bdfd87008", size = 2958, upload-time = "2017-08-06T01:40:57.021Z" }
 
 [[package]]
 name = "tomli"
