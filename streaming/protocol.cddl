@@ -363,6 +363,9 @@ Event = {
   type: "event",
   ? eventId: text,                       ; Unique ID for reconnection (maps to SSE id:)
   ? seq: js-uint,                        ; Monotonic sequence number for ordering
+  ; Producing run. Durable across connection-local `seq` resets so clients
+  ; can ignore replayed events from older runs after hydrate / reconnect.
+  ? runId: text,
   EventData,
   Extensible,
 }
@@ -539,7 +542,12 @@ EventStreamRequest = {
   channels: [+ Channel],
   ? namespaces: [* Namespace],           ; Prefix-match these namespace paths
   ? depth: uint,                         ; Max depth below namespace prefix
-  ? since: js-uint,                      ; Replay events after this seq number
+  ? since: js-uint,                      ; Connection-local seq resume (same session)
+  ; Durable cursor: replay events with eventId strictly after this value,
+  ; then switch to live. Prefer this across reconnects; `since` remains for
+  ; same-connection ring-buffer resume only. Same id space as
+  ; ReconnectParams.lastEventId.
+  ? sinceEventId: text,
   Extensible,
 }
 

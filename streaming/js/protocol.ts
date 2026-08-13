@@ -318,6 +318,11 @@ export type Event = EventData & Extensible & {
    * Monotonic sequence number for ordering
    */
   seq?: JsUint;
+  /**
+   * Producing run. Durable across connection-local `seq` resets so clients
+   * can ignore replayed events from older runs after hydrate / reconnect.
+   */
+  run_id?: string;
 };
 
 export type ResultData = RunResult | SubscriptionResult | AgentResult | InputResult | StateResult | EmptyResult;
@@ -457,9 +462,16 @@ export type EventStreamRequest = Extensible & {
    */
   depth?: number;
   /**
-   * Replay events after this seq number
+   * Connection-local seq resume (same session)
    */
   since?: JsUint;
+  /**
+   * Durable cursor: replay events with eventId strictly after this value,
+   * then switch to live. Prefer this across reconnects; `since` remains for
+   * same-connection ring-buffer resume only. Same id space as
+   * ReconnectParams.lastEventId.
+   */
+  since_event_id?: string;
 };
 
 export type SubscriptionCommand = SubscriptionSubscribe | SubscriptionUnsubscribe | SubscriptionReconnect;

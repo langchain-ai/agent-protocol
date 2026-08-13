@@ -304,6 +304,7 @@ class _EventFields(TypedDict):
     type: Literal["event"]
     event_id: NotRequired[str]  # Unique ID for reconnection (maps to SSE id:)
     seq: NotRequired[JsUint]  # Monotonic sequence number for ordering
+    run_id: NotRequired[str]
 
 class _EventVariant0(_EventFields, LifecycleEvent):
     pass
@@ -387,7 +388,8 @@ class EventStreamRequest(TypedDict):
     channels: list[Channel]
     namespaces: NotRequired[list[Namespace]]  # Prefix-match these namespace paths
     depth: NotRequired[int]  # Max depth below namespace prefix
-    since: NotRequired[JsUint]  # Replay events after this seq number
+    since: NotRequired[JsUint]  # Connection-local seq resume (same session)
+    since_event_id: NotRequired[str]
 
 class SubscribeParams(TypedDict):
     channels: list[Channel]
