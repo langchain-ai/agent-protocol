@@ -22,23 +22,22 @@ from typing_extensions import Annotated
 from ap_client.models.config import Config
 from ap_client.models.input import Input
 from ap_client.models.message import Message
-from ap_client.models.stream_mode1 import StreamMode1
+from ap_client.models.stream_mode import StreamMode
 from typing import Set
 from typing_extensions import Self
 
 
-class RunStream(BaseModel):
+class RunResumeStream(BaseModel):
     """
-    RunStream
+    Payload for resuming a run and streaming the output.
     """  # noqa: E501
 
-    thread_id: Optional[StrictStr] = Field(
-        default=None,
-        description="The ID of the thread to run. If not provided, creates a stateless run. 'thread_id' is ignored unless Threads stage is implemented.",
+    thread_id: StrictStr = Field(
+        description="The ID of the thread to resume. Must refer to an existing thread."
     )
     agent_id: Optional[StrictStr] = Field(
         default=None,
-        description="The agent ID to run. If not provided will use the default agent for this service. 'agent_id' is ignored unless Agents stage is implemented.",
+        description="The agent ID to run. If not provided will use the agent associated with this thread (or the default agent for this service). 'agent_id' is ignored unless Agents stage is implemented.",
     )
     input: Optional[Input] = None
     messages: Optional[List[Message]] = Field(
@@ -53,17 +52,13 @@ class RunStream(BaseModel):
     ] = Field(default=None, description="Webhook to call after run finishes.")
     on_completion: Optional[StrictStr] = Field(
         default=None,
-        description="Whether to delete or keep the thread when run completes. Must be one of 'delete' or 'keep'. Defaults to 'delete' when thread_id not provided, otherwise 'keep'.",
+        description="Whether to delete or keep the thread when run completes. Must be one of 'delete' or 'keep'. Defaults to 'keep'.",
     )
     on_disconnect: Optional[StrictStr] = Field(
         default="cancel",
         description="The disconnect mode to use. Must be one of 'cancel' or 'continue'.",
     )
-    if_not_exists: Optional[StrictStr] = Field(
-        default="reject",
-        description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
-    )
-    stream_mode: Optional[StreamMode1] = None
+    stream_mode: Optional[StreamMode] = None
     __properties: ClassVar[List[str]] = [
         "thread_id",
         "agent_id",
@@ -74,7 +69,6 @@ class RunStream(BaseModel):
         "webhook",
         "on_completion",
         "on_disconnect",
-        "if_not_exists",
         "stream_mode",
     ]
 
@@ -84,8 +78,8 @@ class RunStream(BaseModel):
         if value is None:
             return value
 
-        if value not in set(["delete", "keep"]):
-            raise ValueError("must be one of enum values ('delete', 'keep')")
+        if value not in set(["keep", "delete"]):
+            raise ValueError("must be one of enum values ('keep', 'delete')")
         return value
 
     @field_validator("on_disconnect")
@@ -96,16 +90,6 @@ class RunStream(BaseModel):
 
         if value not in set(["cancel", "continue"]):
             raise ValueError("must be one of enum values ('cancel', 'continue')")
-        return value
-
-    @field_validator("if_not_exists")
-    def if_not_exists_validate_enum(cls, value):
-        """Validates the enum"""
-        if value is None:
-            return value
-
-        if value not in set(["create", "reject"]):
-            raise ValueError("must be one of enum values ('create', 'reject')")
         return value
 
     model_config = ConfigDict(
@@ -125,7 +109,7 @@ class RunStream(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of RunStream from a JSON string"""
+        """Create an instance of RunResumeStream from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -170,7 +154,7 @@ class RunStream(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of RunStream from a dict"""
+        """Create an instance of RunResumeStream from a dict"""
         if obj is None:
             return None
 
@@ -196,10 +180,7 @@ class RunStream(BaseModel):
                 "on_disconnect": obj.get("on_disconnect")
                 if obj.get("on_disconnect") is not None
                 else "cancel",
-                "if_not_exists": obj.get("if_not_exists")
-                if obj.get("if_not_exists") is not None
-                else "reject",
-                "stream_mode": StreamMode1.from_dict(obj["stream_mode"])
+                "stream_mode": StreamMode.from_dict(obj["stream_mode"])
                 if obj.get("stream_mode") is not None
                 else None,
             }

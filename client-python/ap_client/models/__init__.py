@@ -27,6 +27,8 @@ from ap_client.models.message_any_block import MessageAnyBlock
 from ap_client.models.message_text_block import MessageTextBlock
 from ap_client.models.run import Run
 from ap_client.models.run_create import RunCreate
+from ap_client.models.run_resume import RunResume
+from ap_client.models.run_resume_stream import RunResumeStream
 from ap_client.models.run_search_request import RunSearchRequest
 from ap_client.models.run_status import RunStatus
 from ap_client.models.run_stream import RunStream
@@ -38,6 +40,7 @@ from ap_client.models.store_list_namespaces_request import StoreListNamespacesRe
 from ap_client.models.store_put_request import StorePutRequest
 from ap_client.models.store_search_request import StoreSearchRequest
 from ap_client.models.stream_mode import StreamMode
+from ap_client.models.stream_mode1 import StreamMode1
 from ap_client.models.thread import Thread
 from ap_client.models.thread_checkpoint import ThreadCheckpoint
 from ap_client.models.thread_create import ThreadCreate

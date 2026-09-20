@@ -15,7 +15,7 @@ Name | Type | Description | Notes
 **on_completion** | **str** | Whether to delete or keep the thread when run completes. Must be one of &#39;delete&#39; or &#39;keep&#39;. Defaults to &#39;delete&#39; when thread_id not provided, otherwise &#39;keep&#39;. | [optional] 
 **on_disconnect** | **str** | The disconnect mode to use. Must be one of &#39;cancel&#39; or &#39;continue&#39;. | [optional] [default to 'cancel']
 **if_not_exists** | **str** | How to handle missing thread. Must be either &#39;reject&#39; (raise error if missing), or &#39;create&#39; (create new thread). | [optional] [default to 'reject']
-**stream_mode** | [**StreamMode**](StreamMode.md) |  | [optional] 
+**stream_mode** | [**StreamMode1**](StreamMode1.md) |  | [optional] 
 **run_id** | **str** | The ID of the run. | 
 **created_at** | **datetime** | The time the run was created. | 
 **updated_at** | **datetime** | The last time the run was updated. | 
