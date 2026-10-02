@@ -271,6 +271,79 @@ Tool call arguments stream as chunk content and finalize as parsed tool calls:
 `message-finish` may include token usage for AI-authored messages.
 Unrecoverable model-call failures are emitted as message `error` events.
 
+#### Proposal: append-only tool-call arguments
+
+This is a proposed extension, not part of the current CDDL schema or generated
+bindings. It addresses the cumulative argument payloads reported in
+[langchain-core #40998](https://github.com/langchain-ai/langchain/issues/40998).
+
+Today, `block-delta` replaces a supplied `args` field. To preserve partial
+arguments, producers resend the entire argument string accumulated so far.
+For a fixed chunk size, total streamed argument bytes therefore grow
+quadratically with the argument length, unlike append-only text deltas.
+
+Add `ToolCallArgsDelta` to the existing `ContentBlockDelta` union:
+
+```cddl
+ToolCallArgsDelta = {
+  type: "tool-call-args-delta",
+  args: text,
+  Extensible,
+}
+```
+
+The `args` value is only the newly received argument-string slice. It need not
+be valid JSON on its own. Consumers append it, in event order, to the `args`
+string of the block identified by the existing message context and block
+`index`. Missing or null initial arguments are treated as an empty string.
+The variant applies to both `tool_call_chunk` and `server_tool_call_chunk`, not
+to parsed tool calls or tool execution output.
+
+For a block started with `args: ""`, these deltas reconstruct
+`{"query":"weather"}`:
+
+```json
+[
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-args-delta",
+      "args": "{\"query\":"
+    }
+  },
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-args-delta",
+      "args": "\"weather\"}"
+    }
+  }
+]
+```
+
+Tool IDs, names, and provider metadata remain on the block start or are updated
+with `block-delta`; appending arguments does not modify those fields. Existing
+`block-delta` replacement semantics remain unchanged. An `args` replacement,
+if supplied, becomes the new prefix for subsequent argument slices.
+
+`content-block-finish` still carries the complete parsed `tool_call` or
+`server_tool_call`. Invalid JSON or a non-object argument value must not be
+promoted to a valid tool call; the finish carries an `invalid_tool_call` with
+the raw arguments and an error instead. This keeps incremental JSON parsing
+optional and makes streamed argument bytes linear in the final argument size.
+
+The outer event envelope, `messages` channel, block indexes, and lifecycle do
+not change. Adding a union variant still requires coordinated adoption:
+regenerate the Python and TypeScript bindings, update model producers and
+consumers in both languages, and test client/server tools, metadata updates,
+malformed arguments, and ordered replay without duplicate appends. Producers
+must use cumulative `block-delta` snapshots for consumers that do not support
+the new variant; silently ignoring an unknown delta loses incremental args.
+Capability negotiation or an explicit opt-in must be agreed before enabling
+this by default. This proposal does not introduce a negotiation field.
+
 ### `tools`
 
 The `tools` channel exposes tool execution lifecycle observability:
