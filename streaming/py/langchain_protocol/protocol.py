@@ -173,7 +173,11 @@ class BlockDelta(TypedDict):
     type: Literal["block-delta"]
     fields: BlockDeltaFields
 
-ContentBlockDelta = Union[TextDelta, ReasoningDelta, DataDelta, BlockDelta]
+class ToolCallDelta(TypedDict):
+    type: Literal["tool-call-delta"]
+    args: str
+
+ContentBlockDelta = Union[TextDelta, ReasoningDelta, DataDelta, BlockDelta, ToolCallDelta]
 
 class RunStart(TypedDict):
     method: Literal["run.start"]
