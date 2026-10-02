@@ -282,11 +282,11 @@ arguments, producers resend the entire argument string accumulated so far.
 For a fixed chunk size, total streamed argument bytes therefore grow
 quadratically with the argument length, unlike append-only text deltas.
 
-Add `ToolCallArgsDelta` to the existing `ContentBlockDelta` union:
+Add `ToolCallDelta` to the existing `ContentBlockDelta` union:
 
 ```cddl
-ToolCallArgsDelta = {
-  type: "tool-call-args-delta",
+ToolCallDelta = {
+  type: "tool-call-delta",
   args: text,
   Extensible,
 }
@@ -308,7 +308,7 @@ For a block started with `args: ""`, these deltas reconstruct
     "event": "content-block-delta",
     "index": 1,
     "delta": {
-      "type": "tool-call-args-delta",
+      "type": "tool-call-delta",
       "args": "{\"query\":"
     }
   },
@@ -316,7 +316,7 @@ For a block started with `args: ""`, these deltas reconstruct
     "event": "content-block-delta",
     "index": 1,
     "delta": {
-      "type": "tool-call-args-delta",
+      "type": "tool-call-delta",
       "args": "\"weather\"}"
     }
   }
