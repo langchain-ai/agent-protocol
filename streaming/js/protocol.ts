@@ -223,12 +223,13 @@ export type FileContentBlock = Extensible & {
 };
 
 // Explicit incremental updates for content blocks.
-// TextDelta, ReasoningDelta, and DataDelta append to their named fields.
-// BlockDelta shallow-merges `fields` onto the accumulated content block.
+// TextDelta, ReasoningDelta, DataDelta, and ToolCallDelta append to
+// their named fields. BlockDelta shallow-merges `fields` onto the
+// accumulated content block, replacing supplied values.
 // Producers should use DataDelta for streamed base64 chunks in image,
-// audio, video, or file blocks. Use BlockDelta for tool-call argument
-// streaming, provider signatures, citations, compaction markers, and
-// future block fields without dedicated append semantics.
+// audio, video, or file blocks, and ToolCallDelta for tool-call argument
+// slices. Use BlockDelta for metadata, argument snapshots, provider
+// signatures, citations, and fields without dedicated append semantics.
 export type NonStandardContentBlock = Extensible & {
   type: "non_standard";
   value: Record<string, any>;
@@ -266,9 +267,18 @@ export interface BlockDeltaFields {
   [key: string]: any | undefined;
 }
 
+// Append an argument-string slice to a ToolCallChunk or ServerToolCallChunk.
+// Missing or null initial args are treated as an empty string. Slices need
+// not be valid JSON individually. BlockDelta args still replaces the prefix.
+// Tool identity and metadata are unchanged; the finish carries parsed args.
 export type BlockDelta = Extensible & {
   type: "block-delta";
   fields: BlockDeltaFields;
+};
+
+export type ToolCallDelta = Extensible & {
+  type: "tool-call-delta";
+  args: string;
 };
 
 // ==========================================================================
@@ -280,7 +290,7 @@ export type BlockDelta = Extensible & {
 // Event           — server -> client (unsolicited push)
 // ==========================================================================
 // --- Client -> Server ---
-export type ContentBlockDelta = TextDelta | ReasoningDelta | DataDelta | BlockDelta;
+export type ContentBlockDelta = TextDelta | ReasoningDelta | DataDelta | BlockDelta | ToolCallDelta;
 
 export type Command = CommandData & Extensible & {
   id: JsUint;
@@ -691,6 +701,7 @@ export interface LifecycleCauseEdge {
 // - text-delta appends to the active block's `text` field
 // - reasoning-delta appends to the active block's `reasoning` field
 // - data-delta appends to the active block's `base64` field
+// - tool-call-delta appends to a tool-call chunk's `args` field
 // - block-delta shallow-merges `fields` onto the active block
 // ==========================================================================
 export interface LifecycleData {
@@ -746,6 +757,7 @@ export type MessageStartData = Extensible & {
 // { type: "text-delta", text: "Hello " }                 — append text
 // { type: "reasoning-delta", reasoning: "Let me" }       — append reasoning
 // { type: "data-delta", data: "UklGR..." }               — append base64 data
+// { type: "tool-call-delta", args: '{"q":' }             — append tool args
 // { type: "block-delta", fields: { type: "tool_call_chunk", args: '{"q":' } }
 // — shallow merge fields
 export type ContentBlockStartData = Extensible & {

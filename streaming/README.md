@@ -208,7 +208,8 @@ and keeps client assembly deterministic.
 Delta events carry explicit delta variants. `text-delta` appends to the active
 block's `text` field, `reasoning-delta` appends to `reasoning`, `data-delta`
 appends encoded data chunks to `base64`, and `block-delta` shallow-merges
-fields onto the active block. For example:
+fields onto the active block. `tool-call-delta` appends argument-string slices
+to client and server tool-call chunks. For example:
 
 ```json
 {
@@ -235,7 +236,9 @@ Multimodal data streams use `data-delta` for encoded chunks:
 }
 ```
 
-Tool call arguments stream as chunk content and finalize as parsed tool calls:
+Tool call arguments stream as chunk content and finalize as parsed tool calls.
+`block-delta` can carry cumulative argument snapshots; `tool-call-delta`
+carries only new argument slices:
 
 ```json
 {
@@ -271,18 +274,17 @@ Tool call arguments stream as chunk content and finalize as parsed tool calls:
 `message-finish` may include token usage for AI-authored messages.
 Unrecoverable model-call failures are emitted as message `error` events.
 
-#### Proposal: append-only tool-call arguments
+#### Append-only tool-call arguments
 
-This is a proposed extension, not part of the current CDDL schema or generated
-bindings. It addresses the cumulative argument payloads reported in
+`ToolCallDelta` addresses the cumulative argument payloads reported in
 [langchain-core #40998](https://github.com/langchain-ai/langchain/issues/40998).
 
-Today, `block-delta` replaces a supplied `args` field. To preserve partial
-arguments, producers resend the entire argument string accumulated so far.
+`block-delta` replaces a supplied `args` field. To preserve partial arguments
+using that variant, producers resend the entire string accumulated so far.
 For a fixed chunk size, total streamed argument bytes therefore grow
 quadratically with the argument length, unlike append-only text deltas.
 
-Add `ToolCallDelta` to the existing `ContentBlockDelta` union:
+`ToolCallDelta` is a variant of the existing `ContentBlockDelta` union:
 
 ```cddl
 ToolCallDelta = {
@@ -335,14 +337,14 @@ the raw arguments and an error instead. This keeps incremental JSON parsing
 optional and makes streamed argument bytes linear in the final argument size.
 
 The outer event envelope, `messages` channel, block indexes, and lifecycle do
-not change. Adding a union variant still requires coordinated adoption:
-regenerate the Python and TypeScript bindings, update model producers and
-consumers in both languages, and test client/server tools, metadata updates,
+not change. The schema and generated Python/TypeScript bindings include this
+variant; runtime adoption still requires updating model producers and
+consumers in both languages and testing client/server tools, metadata updates,
 malformed arguments, and ordered replay without duplicate appends. Producers
 must use cumulative `block-delta` snapshots for consumers that do not support
 the new variant; silently ignoring an unknown delta loses incremental args.
 Capability negotiation or an explicit opt-in must be agreed before enabling
-this by default. This proposal does not introduce a negotiation field.
+this by default. No negotiation field is introduced here.
 
 ### `tools`
 
