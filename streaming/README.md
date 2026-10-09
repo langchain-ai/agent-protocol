@@ -54,9 +54,15 @@ The `events` request body is an `EventStreamRequest`:
   "channels": ["messages", "updates", "lifecycle"],
   "namespaces": [[]],
   "depth": 2,
-  "since": 123
+  "since": 123,
+  "sinceEventId": "evt_abc"
 }
 ```
+
+`since` resumes within the same connection's ring buffer (session `seq`).
+`sinceEventId` seeks the durable event tape across reconnects (same id space
+as WebSocket `ReconnectParams.lastEventId`). When both are set,
+`sinceEventId` takes precedence for durable replay.
 
 Each SSE connection is its own subscription. Closing the connection unsubscribes
 from that stream. A client may open multiple event streams for the same thread,
@@ -395,12 +401,22 @@ commands provide explicit reads and time-travel operations.
 
 ## Replay and Reconnection
 
-Servers may keep a ring buffer of recent events per thread. Clients use sequence
-numbers to recover missed events:
+Servers may keep a ring buffer of recent events per thread. Clients recover
+missed events with two different cursors:
 
-- SSE clients pass `since` in `EventStreamRequest`.
-- WebSocket clients call `subscription.reconnect` with `lastEventId` and the
-  subscriptions they want restored.
+- `seq` / `since` — **connection-scoped**. Each new SSE/WebSocket session
+  renumbers from the start of that session's ring buffer. Use `since` only to
+  resume within the same connection after a brief gap.
+- `eventId` / `runId` — **durable**. `eventId` is stable across reconnects
+  (and often anchored to an upstream stream entry). `runId` identifies which
+  run produced the event so clients can ignore replay from older runs after
+  hydrate or a deferred first subscribe.
+
+SSE clients pass `since` (session seq) and optionally `sinceEventId` (durable
+cursor) in `EventStreamRequest`. WebSocket clients call
+`subscription.reconnect` with `lastEventId` and the subscriptions they want
+restored. When `sinceEventId` / `lastEventId` is set, the server seeks the
+durable tape; session `since` remains for same-connection ring-buffer resume.
 
 The server replays matching buffered events after the requested point and then
 switches to live delivery. If the requested event is no longer buffered, servers
