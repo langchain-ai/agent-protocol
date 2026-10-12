@@ -11,6 +11,7 @@ See the [full OpenAPI docs](https://langchain-ai.github.io/agent-protocol/api.ht
 - [Agent Protocol OpenAPI Docs](https://langchain-ai.github.io/agent-protocol/api.html)
 - [Agent Protocol JSON Spec](https://langchain-ai.github.io/agent-protocol/openapi.json)
 - [Agent Streaming Protocol](./streaming/) - streaming primitives, CDDL schema, and generated Python/TypeScript bindings for live agent execution
+- [Agent Protocol compared with A2A and Open Responses](./docs/comparison.md) - how the three protocols relate, which boundary each one standardises, and how their concepts map onto one another
 - [Agent Protocol Python Server Stubs](./server/) - a Python server, using Pydantic V2 and FastAPI, auto-generated from the OpenAPI spec
 - [LangGraph.js API](https://github.com/langchain-ai/langgraphjs-api/tree/main/libs/langgraph-api) - an open-source implementation of this protocol, for LangGraph.js agents, using in-memory storage
 - [LangGraph Platform](https://www.langchain.com/pricing-langgraph-platform) - a commercial platform that implements a superset of this protocol for deploying any LLM agent in production
