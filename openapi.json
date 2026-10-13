@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Agent Protocol",
-    "version": "0.1.6"
+    "version": "0.2.0"
   },
   "tags": [
     {
