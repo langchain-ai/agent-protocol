@@ -276,6 +276,10 @@ export type BlockDelta = Extensible & {
   fields: BlockDeltaFields;
 };
 
+// Extensible via new variants; consumers MUST ignore a delta whose `type`
+// they do not recognise and keep processing the stream, so future
+// additions don't break pinned clients. content-block-finish still
+// carries the complete block.
 export type ToolCallDelta = Extensible & {
   type: "tool-call-delta";
   args: string;
