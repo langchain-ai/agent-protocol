@@ -340,11 +340,13 @@ The outer event envelope, `messages` channel, block indexes, and lifecycle do
 not change. The schema and generated Python/TypeScript bindings include this
 variant; runtime adoption still requires updating model producers and
 consumers in both languages and testing client/server tools, metadata updates,
-malformed arguments, and ordered replay without duplicate appends. Producers
-must use cumulative `block-delta` snapshots for consumers that do not support
-the new variant; silently ignoring an unknown delta loses incremental args.
-Capability negotiation or an explicit opt-in must be agreed before enabling
-this by default. No negotiation field is introduced here.
+malformed arguments, and ordered replay without duplicate appends. Consumers
+must ignore unknown delta variants and keep processing the stream; the complete
+`content-block-finish` remains authoritative. Producers may emit this variant
+by default without negotiation. Older consumers lose live argument previews,
+not the final arguments. Producers that need to preserve those previews may
+use cumulative `block-delta` snapshots instead. No negotiation field is
+introduced here.
 
 ### `tools`
 
