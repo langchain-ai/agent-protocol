@@ -342,11 +342,15 @@ variant; runtime adoption still requires updating model producers and
 consumers in both languages and testing client/server tools, metadata updates,
 malformed arguments, and ordered replay without duplicate appends. Consumers
 must ignore unknown delta variants and keep processing the stream; the complete
-`content-block-finish` remains authoritative. Producers may emit this variant
-by default without negotiation. Older consumers lose live argument previews,
-not the final arguments. Producers that need to preserve those previews may
-use cumulative `block-delta` snapshots instead. No negotiation field is
-introduced here.
+`content-block-finish` remains authoritative. No negotiation is required for
+consumers that follow this rule: they lose live argument previews, not the final
+arguments. Producers that need to preserve those previews may use cumulative
+`block-delta` snapshots instead.
+
+The currently released JS SDK does not yet ignore unknown delta types. Release
+client support and upgrade clients before upgrading servers to emit
+`tool-call-delta` by default; the complete finish does not protect a client that
+fails on an earlier unknown delta. No negotiation field is introduced here.
 
 ### `tools`
 
