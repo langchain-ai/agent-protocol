@@ -208,7 +208,8 @@ and keeps client assembly deterministic.
 Delta events carry explicit delta variants. `text-delta` appends to the active
 block's `text` field, `reasoning-delta` appends to `reasoning`, `data-delta`
 appends encoded data chunks to `base64`, and `block-delta` shallow-merges
-fields onto the active block. For example:
+fields onto the active block. `tool-call-delta` appends argument-string slices
+to client and server tool-call chunks. For example:
 
 ```json
 {
@@ -235,7 +236,9 @@ Multimodal data streams use `data-delta` for encoded chunks:
 }
 ```
 
-Tool call arguments stream as chunk content and finalize as parsed tool calls:
+Tool call arguments stream as chunk content and finalize as parsed tool calls.
+`block-delta` can carry cumulative argument snapshots; `tool-call-delta`
+carries only new argument slices:
 
 ```json
 {
@@ -270,6 +273,87 @@ Tool call arguments stream as chunk content and finalize as parsed tool calls:
 
 `message-finish` may include token usage for AI-authored messages.
 Unrecoverable model-call failures are emitted as message `error` events.
+
+#### Append-only tool-call arguments
+
+`ToolCallDelta` addresses the cumulative argument payloads reported in
+[langchain-core #40998](https://github.com/langchain-ai/langchain/issues/40998).
+
+`block-delta` replaces a supplied `args` field. To preserve partial arguments
+using that variant, producers resend the entire string accumulated so far.
+For a fixed chunk size, total streamed argument bytes therefore grow
+quadratically with the argument length, unlike append-only text deltas.
+
+`ToolCallDelta` is a variant of the existing `ContentBlockDelta` union:
+
+```cddl
+ToolCallDelta = {
+  type: "tool-call-delta",
+  args: text,
+  Extensible,
+}
+```
+
+The `args` value is only the newly received argument-string slice. It need not
+be valid JSON on its own. Consumers append it, in event order, to the `args`
+string of the block identified by the existing message context and block
+`index`. Missing or null initial arguments are treated as an empty string.
+The variant applies to both `tool_call_chunk` and `server_tool_call_chunk`, not
+to parsed tool calls or tool execution output.
+
+For a block started with `args: ""`, these deltas reconstruct
+`{"query":"weather"}`:
+
+```json
+[
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-delta",
+      "args": "{\"query\":"
+    }
+  },
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-delta",
+      "args": "\"weather\"}"
+    }
+  }
+]
+```
+
+`tool-call-delta` carries only `args`. A tool call's other fields, such as `id`
+and `name`, travel on `content-block-start`. A producer that emits
+`tool-call-delta` does not update those fields within the block. `id` and
+`name` may be null on the start; `content-block-finish` fills them in. A
+producer uses one form per block: `block-delta` snapshots or `tool-call-delta`
+slices, never both.
+
+`block-delta` replacement semantics are unchanged. Consumers still apply
+`block-delta` fields, including `id` and `name`, from producers that do not
+emit `tool-call-delta`. An `args` replacement, if supplied, becomes the new
+prefix for subsequent argument slices.
+
+`content-block-finish` still carries the complete parsed `tool_call` or
+`server_tool_call`. Invalid JSON or a non-object argument value must not be
+promoted to a valid tool call; the finish carries an `invalid_tool_call` with
+the raw arguments and an error instead. This keeps incremental JSON parsing
+optional and makes streamed argument bytes linear in the final argument size.
+
+The outer event envelope, `messages` channel, block indexes, and lifecycle do
+not change. The schema and generated Python/TypeScript bindings include this
+variant; runtime adoption still requires updating model producers and
+consumers in both languages and testing client/server tools, metadata updates,
+malformed arguments, and ordered replay without duplicate appends. Consumers
+must ignore unknown delta variants and keep processing the stream; the complete
+`content-block-finish` remains authoritative. Producers may emit this variant
+by default without negotiation. Older consumers lose live argument previews,
+not the final arguments. Producers that need to preserve those previews may
+use cumulative `block-delta` snapshots instead. No negotiation field is
+introduced here.
 
 ### `tools`
 
