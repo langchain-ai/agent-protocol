@@ -276,9 +276,6 @@ Unrecoverable model-call failures are emitted as message `error` events.
 
 #### Append-only tool-call arguments
 
-`ToolCallDelta` addresses the cumulative argument payloads reported in
-[langchain-core #40998](https://github.com/langchain-ai/langchain/issues/40998).
-
 `block-delta` replaces a supplied `args` field. To preserve partial arguments
 using that variant, producers resend the entire string accumulated so far.
 For a fixed chunk size, total streamed argument bytes therefore grow
@@ -343,17 +340,12 @@ promoted to a valid tool call; the finish carries an `invalid_tool_call` with
 the raw arguments and an error instead. This keeps incremental JSON parsing
 optional and makes streamed argument bytes linear in the final argument size.
 
-The outer event envelope, `messages` channel, block indexes, and lifecycle do
-not change. The schema and generated Python/TypeScript bindings include this
-variant; runtime adoption still requires updating model producers and
-consumers in both languages and testing client/server tools, metadata updates,
-malformed arguments, and ordered replay without duplicate appends. Consumers
-must ignore unknown delta variants and keep processing the stream; the complete
-`content-block-finish` remains authoritative. Producers may emit this variant
-by default without negotiation. Older consumers lose live argument previews,
-not the final arguments. Producers that need to preserve those previews may
-use cumulative `block-delta` snapshots instead. No negotiation field is
-introduced here.
+Consumers must ignore unknown delta variants and keep processing the stream.
+The complete `content-block-finish` is authoritative, so consumers that ignore
+`tool-call-delta` lose live argument previews, not the final arguments.
+Producers may emit `tool-call-delta` without negotiation, or use cumulative
+`block-delta` snapshots to preserve previews for consumers that do not support
+append-only deltas.
 
 ### `tools`
 
