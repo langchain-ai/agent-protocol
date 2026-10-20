@@ -329,17 +329,6 @@ and `name`, travel on `content-block-start`. A producer that emits
 producer uses one form per block: `block-delta` snapshots or `tool-call-delta`
 slices, never both.
 
-`block-delta` replacement semantics are unchanged. Consumers still apply
-`block-delta` fields, including `id` and `name`, from producers that do not
-emit `tool-call-delta`. An `args` replacement, if supplied, becomes the new
-prefix for subsequent argument slices.
-
-`content-block-finish` still carries the complete parsed `tool_call` or
-`server_tool_call`. Invalid JSON or a non-object argument value must not be
-promoted to a valid tool call; the finish carries an `invalid_tool_call` with
-the raw arguments and an error instead. This keeps incremental JSON parsing
-optional and makes streamed argument bytes linear in the final argument size.
-
 Consumers must ignore unknown delta variants and keep processing the stream.
 The complete `content-block-finish` is authoritative, so consumers that ignore
 `tool-call-delta` lose live argument previews, not the final arguments.
