@@ -22,6 +22,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv]
+override-dependencies = ["datamodel-code-generator[http]==0.81.0"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["ap_tooling"]

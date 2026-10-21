@@ -208,7 +208,8 @@ and keeps client assembly deterministic.
 Delta events carry explicit delta variants. `text-delta` appends to the active
 block's `text` field, `reasoning-delta` appends to `reasoning`, `data-delta`
 appends encoded data chunks to `base64`, and `block-delta` shallow-merges
-fields onto the active block. For example:
+fields onto the active block. `tool-call-delta` appends argument-string slices
+to client and server tool-call chunks. For example:
 
 ```json
 {
@@ -235,7 +236,9 @@ Multimodal data streams use `data-delta` for encoded chunks:
 }
 ```
 
-Tool call arguments stream as chunk content and finalize as parsed tool calls:
+Tool call arguments stream as chunk content and finalize as parsed tool calls.
+`block-delta` can carry cumulative argument snapshots; `tool-call-delta`
+carries only new argument slices:
 
 ```json
 {
@@ -270,6 +273,68 @@ Tool call arguments stream as chunk content and finalize as parsed tool calls:
 
 `message-finish` may include token usage for AI-authored messages.
 Unrecoverable model-call failures are emitted as message `error` events.
+
+#### Append-only tool-call arguments
+
+`block-delta` replaces a supplied `args` field. To preserve partial arguments
+using that variant, producers resend the entire string accumulated so far.
+For a fixed chunk size, total streamed argument bytes therefore grow
+quadratically with the argument length, unlike append-only text deltas.
+
+`ToolCallDelta` is a variant of the existing `ContentBlockDelta` union:
+
+```cddl
+ToolCallDelta = {
+  type: "tool-call-delta",
+  args: text,
+  Extensible,
+}
+```
+
+The `args` value is only the newly received argument-string slice. It need not
+be valid JSON on its own. Consumers append it, in event order, to the `args`
+string of the block identified by the existing message context and block
+`index`. Missing or null initial arguments are treated as an empty string.
+The variant applies to both `tool_call_chunk` and `server_tool_call_chunk`, not
+to parsed tool calls or tool execution output.
+
+For a block started with `args: ""`, these deltas reconstruct
+`{"query":"weather"}`:
+
+```json
+[
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-delta",
+      "args": "{\"query\":"
+    }
+  },
+  {
+    "event": "content-block-delta",
+    "index": 1,
+    "delta": {
+      "type": "tool-call-delta",
+      "args": "\"weather\"}"
+    }
+  }
+]
+```
+
+`tool-call-delta` carries only `args`. A tool call's other fields, such as `id`
+and `name`, travel on `content-block-start`. A producer that emits
+`tool-call-delta` does not update those fields within the block. `id` and
+`name` may be null on the start; `content-block-finish` fills them in. A
+producer uses one form per block: `block-delta` snapshots or `tool-call-delta`
+slices, never both.
+
+Consumers must ignore unknown delta variants and keep processing the stream.
+The complete `content-block-finish` is authoritative, so consumers that ignore
+`tool-call-delta` lose live argument previews, not the final arguments.
+Producers may emit `tool-call-delta` without negotiation, or use cumulative
+`block-delta` snapshots to preserve previews for consumers that do not support
+append-only deltas.
 
 ### `tools`
 
