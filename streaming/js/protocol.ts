@@ -16,8 +16,7 @@
 // - Events have full lifecycle semantics (no inferred boundaries)
 // - Namespace-based filtering provides server-side routing
 // - Threads are the primary routing key across all transports
-// Status: DRAFT
-// Version: 0.0.13
+// Version: 0.0.20
 // ==========================================================================
 // ==========================================================================
 // 1. Shared Primitives
