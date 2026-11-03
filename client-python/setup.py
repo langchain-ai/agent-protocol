@@ -22,7 +22,7 @@ from setuptools import setup, find_packages  # noqa: H301
 # http://pypi.python.org/pypi/setuptools
 NAME = "ap-client"
 VERSION = "1.0.0"
-PYTHON_REQUIRES = ">= 3.9"
+PYTHON_REQUIRES = ">= 3.11"
 REQUIRES = [
     "urllib3 >= 2.1.0, < 3.0.0",
     "python-dateutil >= 2.8.2",
@@ -39,6 +39,7 @@ setup(
     url="",
     keywords=["OpenAPI", "OpenAPI-Generator", "Agent Protocol"],
     install_requires=REQUIRES,
+    python_requires=PYTHON_REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
     long_description_content_type='text/markdown',
