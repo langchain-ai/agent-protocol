@@ -282,6 +282,10 @@ class InputEvent(TypedDict):
     method: Literal["input.requested"]
     params: dict[str, Any]
 
+class InputAnsweredEvent(TypedDict):
+    method: Literal["input.answered"]
+    params: dict[str, Any]
+
 class ValuesEvent(TypedDict):
     method: Literal["values"]
     params: dict[str, Any]
@@ -302,7 +306,7 @@ class TasksEvent(TypedDict):
     method: Literal["tasks"]
     params: dict[str, Any]
 
-EventData = Union[LifecycleEvent, MessagesEvent, ToolsEvent, InputEvent, ValuesEvent, UpdatesEvent, CheckpointsEvent, CustomEvent, TasksEvent]
+EventData = Union[LifecycleEvent, MessagesEvent, ToolsEvent, InputEvent, InputAnsweredEvent, ValuesEvent, UpdatesEvent, CheckpointsEvent, CustomEvent, TasksEvent]
 
 class _EventFields(TypedDict):
     type: Literal["event"]
@@ -321,22 +325,25 @@ class _EventVariant2(_EventFields, ToolsEvent):
 class _EventVariant3(_EventFields, InputEvent):
     pass
 
-class _EventVariant4(_EventFields, ValuesEvent):
+class _EventVariant4(_EventFields, InputAnsweredEvent):
     pass
 
-class _EventVariant5(_EventFields, UpdatesEvent):
+class _EventVariant5(_EventFields, ValuesEvent):
     pass
 
-class _EventVariant6(_EventFields, CheckpointsEvent):
+class _EventVariant6(_EventFields, UpdatesEvent):
     pass
 
-class _EventVariant7(_EventFields, CustomEvent):
+class _EventVariant7(_EventFields, CheckpointsEvent):
     pass
 
-class _EventVariant8(_EventFields, TasksEvent):
+class _EventVariant8(_EventFields, CustomEvent):
     pass
 
-Event = Union[_EventVariant0, _EventVariant1, _EventVariant2, _EventVariant3, _EventVariant4, _EventVariant5, _EventVariant6, _EventVariant7, _EventVariant8]
+class _EventVariant9(_EventFields, TasksEvent):
+    pass
+
+Event = Union[_EventVariant0, _EventVariant1, _EventVariant2, _EventVariant3, _EventVariant4, _EventVariant5, _EventVariant6, _EventVariant7, _EventVariant8, _EventVariant9]
 
 Message = Union[CommandResponse, ErrorResponse, Event]
 
@@ -574,6 +581,9 @@ InputResult = EmptyResult
 class InputRequestedData(TypedDict):
     interrupt_id: str  # Correlates this request with input.respond
     payload: Any  # Opaque interrupt value from runtime; application-defined shape
+
+class InputAnsweredData(TypedDict):
+    interrupt_ids: list[str]  # The interruptId of each input.requested the run resumes
 
 class StateGetParams(TypedDict):
     namespace: Namespace

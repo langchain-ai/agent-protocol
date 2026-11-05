@@ -22,7 +22,7 @@
 ;   - Namespace-based filtering provides server-side routing
 ;   - Threads are the primary routing key across all transports
 ;
-; Version: 0.0.20
+; Version: 0.0.21
 ; ==========================================================================
 
 
@@ -679,6 +679,7 @@ EventData = (
   MessagesEvent //
   ToolsEvent //
   InputEvent //
+  InputAnsweredEvent //
   ValuesEvent //
   UpdatesEvent //
   CheckpointsEvent //
@@ -1078,6 +1079,24 @@ InputRequestedData = {
   interruptId: text,                      ; Correlates this request with input.respond
   payload: any,                           ; Opaque interrupt value from runtime; application-defined shape
   Extensible,
+}
+
+; Sent when a run that resumes interrupts by ID starts, before the server
+; checks the answer, so every client on the thread, not only the one that
+; answered, can stop offering them. The namespace is the root's; match
+; interrupts by ID. If the run fails, a client that hid interrupts should
+; reload the thread state, which says which ones are still pending.
+InputAnsweredEvent = {
+  method: "input.answered",
+  params: {
+    namespace: Namespace,
+    timestamp: Timestamp,
+    data: InputAnsweredData,
+  },
+}
+
+InputAnsweredData = {
+  interruptIds: [+ text],                 ; The interruptId of each input.requested the run resumes
 }
 
 
