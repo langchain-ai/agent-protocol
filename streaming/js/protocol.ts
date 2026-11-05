@@ -999,10 +999,11 @@ export interface InputEvent {
   };
 }
 
-// Sent when a run that resumes interrupts by ID starts, so every client
-// on the thread, not only the one that answered, can stop offering them.
-// The namespace is the root's; match interrupts by ID. If the run fails,
-// the thread state says which interrupts are still pending.
+// Sent when a run that resumes interrupts by ID starts, before the server
+// checks the answer, so every client on the thread, not only the one that
+// answered, can stop offering them. The namespace is the root's; match
+// interrupts by ID. If the run fails, a client that hid interrupts should
+// reload the thread state, which says which ones are still pending.
 export type InputRequestedData = Extensible & {
   /**
    * Correlates this request with input.respond

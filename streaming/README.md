@@ -380,8 +380,10 @@ answer with `input.respond`, passing the same namespace and interrupt ID.
 
 When a run that resumes interrupts by ID starts, whether `input.respond` or
 another client started it, the server sends `input.answered` with their
-`interruptIds`, so every client on the thread can stop offering them. If that
-run fails, the thread state says which interrupts are still pending.
+`interruptIds`, so every client on the thread can stop offering them. The event
+goes out before the server checks the answer, so if that run fails, a client
+that hid interrupts should reload the thread state, which says which ones are
+still pending.
 
 `input.respond` may also carry optional `update` and `goto` fields. The server
 applies them as a LangGraph `Command(resume, update, goto)` in the same
