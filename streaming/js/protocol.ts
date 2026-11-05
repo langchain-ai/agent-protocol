@@ -16,7 +16,7 @@
 // - Events have full lifecycle semantics (no inferred boundaries)
 // - Namespace-based filtering provides server-side routing
 // - Threads are the primary routing key across all transports
-// Version: 0.0.20
+// Version: 0.0.21
 // ==========================================================================
 // ==========================================================================
 // 1. Shared Primitives
@@ -598,7 +598,7 @@ export type AgentStatus = "started" | "running" | "completed" | "failed" | "inte
 // namespace back to whatever on the parent namespace triggered it,
 // enabling over-the-wire clients to reconstruct the subgraph tree
 // without product-specific knowledge.
-export type EventData = LifecycleEvent | MessagesEvent | ToolsEvent | InputEvent | ValuesEvent | UpdatesEvent | CheckpointsEvent | CustomEvent | TasksEvent;
+export type EventData = LifecycleEvent | MessagesEvent | ToolsEvent | InputEvent | InputAnsweredEvent | ValuesEvent | UpdatesEvent | CheckpointsEvent | CustomEvent | TasksEvent;
 
 // Causation edge for a subgraph's `started` lifecycle event.
 // Identifies what on the parent namespace caused this subgraph to
@@ -999,13 +999,10 @@ export interface InputEvent {
   };
 }
 
-// ==========================================================================
-// 11. State Module
-// Graph state and checkpoint access. Enables state inspection and
-// time-travel debugging (fork from checkpoint).
-// Note: Cross-thread store operations (search, put) are accessed via
-// the LangGraph REST API and are not part of the streaming protocol.
-// ==========================================================================
+// Sent when a run that resumes interrupts by ID starts, so every client
+// on the thread, not only the one that answered, can stop offering them.
+// The namespace is the root's; match interrupts by ID. If the run fails,
+// the thread state says which interrupts are still pending.
 export type InputRequestedData = Extensible & {
   /**
    * Correlates this request with input.respond
@@ -1016,6 +1013,29 @@ export type InputRequestedData = Extensible & {
    */
   payload: any;
 };
+
+export interface InputAnsweredEvent {
+  method: "input.answered";
+  params: {
+    namespace: Namespace;
+    timestamp: Timestamp;
+    data: InputAnsweredData;
+  };
+}
+
+// ==========================================================================
+// 11. State Module
+// Graph state and checkpoint access. Enables state inspection and
+// time-travel debugging (fork from checkpoint).
+// Note: Cross-thread store operations (search, put) are accessed via
+// the LangGraph REST API and are not part of the streaming protocol.
+// ==========================================================================
+export interface InputAnsweredData {
+  /**
+   * The interruptId of each input.requested the run resumes
+   */
+  interrupt_ids: string[];
+}
 
 // --- state.get ---
 export type StateCommand = StateGet | StateListCheckpoints | StateFork;
