@@ -11,6 +11,7 @@ from ..models import (
     ErrorResponse,
     Item,
     ListNamespaceResponse,
+    Namespace,
     Optional,
     SearchItemsResponse,
     StoreDeleteRequest,

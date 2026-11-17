@@ -5,9 +5,69 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from ..models import ErrorResponse, RunCreate, RunStream, RunWaitResponse, Union
+from ..models import (
+    ErrorResponse,
+    Run,
+    RunCreate,
+    RunResume,
+    RunResumeStream,
+    RunStream,
+    RunWaitResponse,
+    Union,
+)
 
 router = APIRouter(tags=["Runs"])
+
+
+@router.patch(
+    "/runs/resume",
+    response_model=Run,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def resume_run(body: RunResume) -> Union[Run, ErrorResponse]:
+    """
+    Resume Run (start execution from interrupted thread)
+    """
+    pass
+
+
+@router.patch(
+    "/runs/resume/stream",
+    response_model=str,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def resume_and_stream_run(body: RunResumeStream) -> Union[str, ErrorResponse]:
+    """
+    Resume Run and Stream Output
+    """
+    pass
+
+
+@router.patch(
+    "/runs/resume/wait",
+    response_model=RunWaitResponse,
+    responses={
+        "404": {"model": ErrorResponse},
+        "409": {"model": ErrorResponse},
+        "422": {"model": ErrorResponse},
+    },
+    tags=["Runs"],
+)
+def resume_and_wait_run(body: RunResume) -> Union[RunWaitResponse, ErrorResponse]:
+    """
+    Resume Run and Wait
+    """
+    pass
 
 
 @router.post(

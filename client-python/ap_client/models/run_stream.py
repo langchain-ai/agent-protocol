@@ -22,7 +22,7 @@ from typing_extensions import Annotated
 from ap_client.models.config import Config
 from ap_client.models.input import Input
 from ap_client.models.message import Message
-from ap_client.models.stream_mode import StreamMode
+from ap_client.models.stream_mode1 import StreamMode1
 from typing import Set
 from typing_extensions import Self
 
@@ -63,7 +63,7 @@ class RunStream(BaseModel):
         default="reject",
         description="How to handle missing thread. Must be either 'reject' (raise error if missing), or 'create' (create new thread).",
     )
-    stream_mode: Optional[StreamMode] = None
+    stream_mode: Optional[StreamMode1] = None
     __properties: ClassVar[List[str]] = [
         "thread_id",
         "agent_id",
@@ -199,7 +199,7 @@ class RunStream(BaseModel):
                 "if_not_exists": obj.get("if_not_exists")
                 if obj.get("if_not_exists") is not None
                 else "reject",
-                "stream_mode": StreamMode.from_dict(obj["stream_mode"])
+                "stream_mode": StreamMode1.from_dict(obj["stream_mode"])
                 if obj.get("stream_mode") is not None
                 else None,
             }
