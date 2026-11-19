@@ -490,6 +490,9 @@ class ContentBlockFinishData(TypedDict):
 class MessageFinishData(TypedDict):
     event: Literal["message-finish"]
     usage: NotRequired[UsageInfo]  # Token usage for AI-authored messages
+    finish_reason: NotRequired[str]  # Raw provider finish value, unchanged
+    normalized_finish_reason: NotRequired[FinishReason]  # Best-effort normalized finishReason
+    finish_state: NotRequired[FinishState]  # Whether the caller must continue the turn
 
 class MessageErrorData(TypedDict):
     event: Literal["error"]
@@ -497,6 +500,10 @@ class MessageErrorData(TypedDict):
     code: NotRequired[str]
 
 MessagesData = Union[MessageStartData, ContentBlockStartData, ContentBlockDeltaData, ContentBlockFinishData, MessageFinishData, MessageErrorData]
+
+FinishReason = Union[Literal["stop"], Literal["length"], Literal["tool_call"], Literal["content_filter"], Literal["refusal"], Literal["context_exceeded"], Literal["error"], Literal["other"]]
+
+FinishState = Union[Literal["complete"], Literal["suspended"]]
 
 class InputTokenDetails(TypedDict):
     audio: NotRequired[int]
