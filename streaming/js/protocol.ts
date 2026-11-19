@@ -16,7 +16,7 @@
 // - Events have full lifecycle semantics (no inferred boundaries)
 // - Namespace-based filtering provides server-side routing
 // - Threads are the primary routing key across all transports
-// Version: 0.0.21
+// Version: 0.0.22
 // ==========================================================================
 // ==========================================================================
 // 1. Shared Primitives
@@ -695,7 +695,7 @@ export interface LifecycleCauseEdge {
 // -> content-block-start(index=1, contentBlock)
 // -> content-block-delta(index=1, delta) ...
 // -> content-block-finish(index=1, contentBlock)
-// -> message-finish(reason)
+// -> message-finish(finishReason)
 // Content blocks MUST NOT interleave: block N must finish before block
 // N+1 starts. This constraint applies within a single message
 // (identified by namespace + node) and matches observed behavior of
@@ -788,15 +788,38 @@ export type ContentBlockFinishData = Extensible & {
   content: FinalizedContentBlock;
 };
 
-// Breakdown of input token counts. Keys are optional and need not sum to
-// inputTokens; may also hold extra provider-specific keys.
+// Provider-agnostic reason a model stopped generating: natural end (stop),
+// output token limit (length), tool execution requested (tool_call),
+// provider safety or policy block (content_filter), model declined (refusal),
+// context window limit (context_exceeded), error status with output (error).
+// Values a producer can't map are "other"; read finishReason for the raw value.
 export type MessageFinishData = Extensible & {
   event: "message-finish";
   /**
    * Token usage for AI-authored messages
    */
   usage?: UsageInfo;
+  /**
+   * Raw provider finish value, unchanged
+   */
+  finish_reason?: string;
+  /**
+   * Best-effort normalized finishReason
+   */
+  normalized_finish_reason?: FinishReason;
+  /**
+   * Whether the caller must continue the turn
+   */
+  finish_state?: FinishState;
 };
+
+// "suspended" means the turn is not done and the caller must send another
+// request to continue it. Missing means "complete".
+export type FinishReason = "stop" | "length" | "tool_call" | "content_filter" | "refusal" | "context_exceeded" | "error" | "other";
+
+// Breakdown of input token counts. Keys are optional and need not sum to
+// inputTokens; may also hold extra provider-specific keys.
+export type FinishState = "complete" | "suspended";
 
 // Breakdown of output token counts. Keys are optional and need not sum to
 // outputTokens; may also hold extra provider-specific keys.

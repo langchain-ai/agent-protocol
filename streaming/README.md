@@ -272,7 +272,25 @@ carries only new argument slices:
 }
 ```
 
-`message-finish` may include token usage for AI-authored messages.
+`message-finish` may include token usage for AI-authored messages, and why the
+model stopped:
+
+- `finish_reason`: the provider's raw value, unchanged.
+- `normalized_finish_reason`: one of `stop`, `length`, `tool_call`,
+  `content_filter`, `refusal`, `context_exceeded`, `error` or `other`.
+  Unmapped provider values are `other`, never `stop`.
+- `finish_state`: `complete`, or `suspended` when the caller must send another
+  request to continue the turn. Missing means `complete`.
+
+```json
+{
+  "event": "message-finish",
+  "finish_reason": "max_tokens",
+  "normalized_finish_reason": "length",
+  "finish_state": "complete"
+}
+```
+
 Unrecoverable model-call failures are emitted as message `error` events.
 
 #### Append-only tool-call arguments
